@@ -1235,10 +1235,10 @@
           <input type="file" id="importFileInput" accept=".json" onchange="importDataJSON(event)" class="hidden">
         </label>
 
-        <!-- Reset to Sample Data -->
-        <button onclick="confirmResetToSampleData()" class="w-full py-3 px-4 rounded-2xl bg-slate-200/50 dark:bg-slate-800/40 hover:bg-amber-500/20 text-slate-600 dark:text-slate-400 hover:text-amber-500 font-bold text-xs flex items-center justify-center gap-2 transition">
-          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-          <span>بارگذاری داده‌های نمونه فارسی</span>
+        <!-- Reset to Clean Raw State -->
+        <button onclick="confirmResetToCleanState()" class="w-full py-3 px-4 rounded-2xl bg-slate-200/50 dark:bg-slate-800/40 hover:bg-rose-500/20 text-slate-600 dark:text-slate-400 hover:text-rose-500 font-bold text-xs flex items-center justify-center gap-2 transition">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          <span>پاکسازی کامل اطلاعات و شروع مجدد خام</span>
         </button>
       </div>
     </div>
@@ -1252,152 +1252,26 @@
   ======================================================== -->
   <script>
     /* ==========================================
-       1. INITIAL STATE & STORAGE MANAGEMENT
+       1. INITIAL STATE & STORAGE MANAGEMENT (CLEAN / RAW STATE)
     ========================================== */
     const STORAGE_KEY = 'advanced_study_manager_state_v1';
 
-    // Rich Persian demo data
+    // 100% clean, raw initial state (no mock data)
     const DEFAULT_DATA = {
       user: {
-        xp: 220,
-        level: 2,
-        streak: 4,
-        lastStudyDate: new Date().toISOString().split('T')[0],
-        totalStudyMinutes: 345,
-        totalSessions: 12
+        xp: 0,
+        level: 1,
+        streak: 0,
+        lastStudyDate: null,
+        totalStudyMinutes: 0,
+        totalSessions: 0
       },
       subjects: [
-        { id: 'subj_1', name: 'ریاضیات و حسابان', color: '#3b82f6', totalMinutes: 145 },
-        { id: 'subj_2', name: 'فیزیک و دینامیک', color: '#8b5cf6', totalMinutes: 90 },
-        { id: 'subj_3', name: 'شیمی کنکور', color: '#f59e0b', totalMinutes: 65 },
-        { id: 'subj_4', name: 'برنامه‌نویسی وب و هوش مصنوعی', color: '#06b6d4', totalMinutes: 45 }
+        { id: 'subj_1', name: 'عمومی', color: '#14b8a6', totalMinutes: 0 }
       ],
-      tasks: [
-        {
-          id: 'task_1',
-          title: 'حل تست‌های انتگرال و کاربرد مشتق',
-          subjectId: 'subj_1',
-          priority: 'high',
-          status: 'studying',
-          deadline: new Date(Date.now() + 86400000).toISOString().slice(0, 16),
-          estimatedMinutes: 90,
-          actualMinutes: 50,
-          notes: 'فرمول‌های مهم ص ۶۴ تا ۷۲: مساحت زیر نمودار و انتگرال توابع مثلثاتی معین',
-          subtasks: [
-            { id: 'st_1', text: 'مرور درسنامه و هایلایت‌های کتاب', done: true },
-            { id: 'st_2', text: 'حل ۱۰ تست آموزشی ابتدایی', done: true },
-            { id: 'st_3', text: 'حل تست‌های زمان‌دار کنکور سال‌های اخیر', done: false }
-          ],
-          spacedRepetition: {
-            enabled: true,
-            stage: 2, // 1: +1d, 2: +3d, 3: +7d, 4: +30d, 5: mastered
-            intervalDays: 3,
-            nextReview: new Date().toISOString().slice(0, 10), // due today for demo!
-            lastReviewed: new Date(Date.now() - 86400000).toISOString()
-          },
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'task_2',
-          title: 'خلاصه‌نویسی قوانین نیوتون و دینامیک',
-          subjectId: 'subj_2',
-          priority: 'medium',
-          status: 'todo',
-          deadline: new Date(Date.now() + 172800000).toISOString().slice(0, 16),
-          estimatedMinutes: 60,
-          actualMinutes: 0,
-          notes: 'رسم دیاگرام آزاد نیروها در سطوح شیبدار و اصطکاک ایستایی',
-          subtasks: [
-            { id: 'st_4', text: 'بررسی مثال‌های فصل دینامیک', done: false },
-            { id: 'st_5', text: 'طراحی نقشه ذهنی فرمول‌های حرکت', done: false }
-          ],
-          spacedRepetition: {
-            enabled: true,
-            stage: 1,
-            intervalDays: 1,
-            nextReview: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
-            lastReviewed: null
-          },
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'task_3',
-          title: 'تعادل‌های شیمیایی و اسید و باز',
-          subjectId: 'subj_3',
-          priority: 'high',
-          status: 'review',
-          deadline: new Date(Date.now() + 43200000).toISOString().slice(0, 16),
-          estimatedMinutes: 45,
-          actualMinutes: 45,
-          notes: 'اصل لوشاتلیه، اثر تغییر فشار و دما بر ثابت تعادل K و شناساگرها',
-          subtasks: [
-            { id: 'st_6', text: 'مرور خلاصه‌ها و جداول pH', done: true },
-            { id: 'st_7', text: 'حل ۵ مسئله تشریحی نمونه', done: true }
-          ],
-          spacedRepetition: {
-            enabled: true,
-            stage: 3,
-            intervalDays: 7,
-            nextReview: new Date(Date.now() + 259200000).toISOString().slice(0, 10),
-            lastReviewed: new Date().toISOString()
-          },
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'task_4',
-          title: 'طراحی اپلیکیشن مدیریت مطالعه با Tailwind و JS',
-          subjectId: 'subj_4',
-          priority: 'low',
-          status: 'mastered',
-          deadline: new Date(Date.now() - 86400000).toISOString().slice(0, 16),
-          estimatedMinutes: 75,
-          actualMinutes: 75,
-          notes: 'پیاده‌سازی ماژول‌های Web Audio API، Canvas Confetti و Chart.js',
-          subtasks: [
-            { id: 'st_8', text: 'طراحی رابط کاربری شیشه‌ای مدرن RTL', done: true },
-            { id: 'st_9', text: 'کدنویسی موتور پومودورو و تکرار فاصله‌دار', done: true }
-          ],
-          spacedRepetition: {
-            enabled: true,
-            stage: 5,
-            intervalDays: 30,
-            nextReview: new Date(Date.now() + 1800000000).toISOString().slice(0, 10),
-            lastReviewed: new Date().toISOString()
-          },
-          createdAt: new Date().toISOString()
-        }
-      ],
-      exams: [
-        {
-          id: 'exam_1',
-          title: 'کنکور سراسری و آزمون جامع نهایی',
-          subjectId: 'subj_1',
-          examDate: new Date(Date.now() + 3888000000).toISOString().slice(0, 16), // ~45 days
-          targetScore: 'درصد بالای ۸۵٪ یا تراز ۱۱۰۰۰',
-          readiness: 78,
-          topics: 'حسابان، هندسه تحلیلی، گسسته و آمار',
-          notes: 'همراه داشتن کارت ورود به جلسه و ساعت مچی'
-        },
-        {
-          id: 'exam_2',
-          title: 'امتحان پایانی فیزیک الکتریسیته و مغناطیس',
-          subjectId: 'subj_2',
-          examDate: new Date(Date.now() + 691200000).toISOString().slice(0, 16), // ~8 days
-          targetScore: 'نمره ۲۰ کامل',
-          readiness: 65,
-          topics: 'قانون کولن، میدان الکتریکی، خازن‌ها، مدار و القای فاراده',
-          notes: 'تمرکز ویژه روی مدار چندحلقه و فرمول‌های مغناطیس'
-        }
-      ],
-      dailyStudyHistory: [
-        { date: getPastDateString(6), minutes: 90 },
-        { date: getPastDateString(5), minutes: 120 },
-        { date: getPastDateString(4), minutes: 45 },
-        { date: getPastDateString(3), minutes: 110 },
-        { date: getPastDateString(2), minutes: 140 },
-        { date: getPastDateString(1), minutes: 75 },
-        { date: getPastDateString(0), minutes: 60 }
-      ]
+      tasks: [],
+      exams: [],
+      dailyStudyHistory: []
     };
 
     function getPastDateString(daysAgo) {
@@ -3371,6 +3245,11 @@
 
       const streak = appState.user.streak || 0;
       const totalMinutes = appState.user.totalStudyMinutes || 0;
+
+      if (totalMinutes === 0 && appState.tasks.length === 0) {
+        recEl.innerHTML = 'به <strong>استادی‌پلاس</strong> خوش آمدید! این سامانه در وضعیت کاملاً خام و آماده برای ثبت برنامه‌های شماست. برای شروع، اولین تکلیف خود را اضافه کنید یا با یک جلسه تمرکز پومودورو، روند هوشمند مطالعه خود را کلید بزنید.';
+        return;
+      }
       
       let leastStudiedSubject = null;
       let minMinutes = Infinity;
@@ -3447,15 +3326,15 @@
       reader.readAsText(file);
     }
 
-    function confirmResetToSampleData() {
-      if (!confirm('آیا مطمئن هستید که می‌خواهید داده‌های فعلی را با داده‌های نمونه اولیه جایگزین کنید؟')) return;
+    function confirmResetToCleanState() {
+      if (!confirm('آیا مطمئن هستید که می‌خواهید تمام تکالیف و اطلاعات را پاکسازی کرده و برنامه را به حالت کاملاً خام برگردانید؟')) return;
       appState = JSON.parse(JSON.stringify(DEFAULT_DATA));
       saveState();
       closeDataModal();
       updateGamificationHeader();
       renderTasks();
       if (currentTab === 'analytics') renderAnalytics();
-      showToast('داده‌های نمونه فارسی با موفقیت بارگذاری شد 🚀');
+      showToast('سامانه با موفقیت به حالت کاملاً خام بازنشانی شد 🧹');
     }
 
     /* ==========================================
