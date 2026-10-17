@@ -1,0 +1,3570 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>استادی‌پلاس | سامانه هوشمند مدیریت یادگیری و مطالعه</title>
+  
+  <!-- Google Fonts: Vazirmatn -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Vazirmatn', 'sans-serif'],
+          },
+          colors: {
+            teal: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              200: '#99f6e4',
+              300: '#5eead4',
+              400: '#2dd4bf',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+              900: '#134e4a',
+              950: '#042f2e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- External Libraries via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    * {
+      font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* Light mode default glassmorphism */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(226, 232, 240, 0.85);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04);
+    }
+    .glass-header {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+    }
+    .glass-input {
+      background: rgba(248, 250, 252, 0.95);
+      border: 1px solid rgba(203, 213, 225, 0.8);
+      color: #0f172a;
+      transition: all 0.2s ease;
+    }
+    .glass-input:focus {
+      background: #ffffff;
+      border-color: #0d9488;
+      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+      outline: none;
+    }
+
+    /* Dark mode overrides */
+    .dark .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
+    }
+    .dark .glass-header {
+      background: rgba(10, 15, 29, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .dark .glass-input {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f8fafc;
+    }
+    .dark .glass-input:focus {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: #14b8a6;
+      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(241, 245, 249, 0.7);
+    }
+    .dark ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.4);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(20, 184, 166, 0.5);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(20, 184, 166, 0.9);
+    }
+
+    /* Kanban Drag & Drop Styles */
+    .kanban-drop-target {
+      border: 2px dashed #14b8a6 !important;
+      background: rgba(20, 184, 166, 0.08) !important;
+    }
+    .dragging {
+      opacity: 0.4;
+      transform: scale(0.98);
+    }
+
+    /* Slider accent */
+    input[type=range] {
+      accent-color: #14b8a6;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-[#090d16] text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300 selection:bg-teal-500 selection:text-white pb-24">
+
+  <!-- ========================================================
+       TOP HEADER & GAMIFICATION DASHBOARD
+  ======================================================== -->
+  <header class="sticky top-0 z-40 glass-header transition-colors duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <!-- App Brand -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('tasks')">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-400 to-teal-700 flex items-center justify-center shadow-lg shadow-teal-500/25 ring-2 ring-teal-400/30 flex-shrink-0">
+            <i data-lucide="sparkles" class="w-6 h-6 text-white"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">استادی‌پلاس</h1>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-600 dark:text-teal-400 border border-teal-500/30">حرفه‌ای</span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">سامانه هوشمند یادگیری و مدیریت مطالعه</p>
+          </div>
+        </div>
+
+        <!-- Gamification Status (Level, XP, Streak) -->
+        <div class="hidden md:flex items-center gap-6 bg-slate-100/90 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700/60 rounded-2xl px-5 py-2.5 backdrop-blur-md">
+          
+          <!-- Daily Streak -->
+          <div class="flex items-center gap-2" title="تعداد روزهای متوالی مطالعه شما">
+            <span class="text-2xl animate-bounce">🔥</span>
+            <div>
+              <div class="flex items-center gap-1">
+                <span id="streakCount" class="font-extrabold text-base text-amber-500 dark:text-amber-400">۰</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">روز پیاپی</span>
+              </div>
+              <span class="text-[10px] text-slate-400 dark:text-slate-500 block -mt-0.5">زنجیره مطالعه</span>
+            </div>
+          </div>
+
+          <div class="w-px h-8 bg-slate-300 dark:bg-slate-700/60"></div>
+
+          <!-- Level & XP Bar -->
+          <div class="w-56">
+            <div class="flex items-center justify-between text-xs mb-1">
+              <span id="userLevelBadge" class="font-bold text-teal-600 dark:text-teal-400">سطح ۱ • جوینده دانش</span>
+              <span id="userXpText" class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">0 / 150 XP</span>
+            </div>
+            <div class="w-full bg-slate-300 dark:bg-slate-700/70 h-2 rounded-full overflow-hidden p-0.5">
+              <div id="userXpBar" class="bg-gradient-to-l from-teal-400 to-teal-600 h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          
+          <!-- Ambient Sound Toggle -->
+          <button id="ambientSoundBtn" onclick="toggleAmbientSound()" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800/60 hover:bg-slate-300 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-300 transition relative" title="پخش صدای نویز قهوه‌ای/باران برای تمرکز عمیق">
+            <i data-lucide="headphones" class="w-5 h-5"></i>
+            <span id="soundPlayingDot" class="hidden absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-teal-400 animate-ping"></span>
+          </button>
+
+          <!-- Backup / Data Menu -->
+          <button onclick="openDataModal()" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800/60 hover:bg-slate-300 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-300 transition" title="پشتیبان‌گیری و بازیابی داده‌ها">
+            <i data-lucide="database" class="w-5 h-5"></i>
+          </button>
+
+          <!-- Theme Toggle -->
+          <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-800/60 hover:bg-slate-300 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-300 transition" title="تغییر تم تاریک / روشن">
+            <i data-lucide="sun" id="themeSunIcon" class="w-5 h-5 hidden"></i>
+            <i data-lucide="moon" id="themeMoonIcon" class="w-5 h-5"></i>
+          </button>
+
+          <!-- Quick Add Task Button -->
+          <button onclick="openTaskModal()" class="flex items-center gap-2 bg-gradient-to-l from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-teal-500/25 active:scale-95 transition text-sm">
+            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+            <span class="hidden sm:inline">تکلیف جدید</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Mobile XP / Streak Banner (visible only on small screens) -->
+      <div class="md:hidden py-2 border-t border-slate-200 dark:border-slate-800/60 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-1.5">
+          <span>🔥</span>
+          <span id="mobileStreakCount" class="font-bold text-amber-500 dark:text-amber-400">۰</span>
+          <span class="text-slate-500 dark:text-slate-400">روز زنجیره</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="mobileLevelBadge" class="font-bold text-teal-600 dark:text-teal-400">سطح ۱</span>
+          <div class="w-24 bg-slate-300 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+            <div id="mobileXpBar" class="bg-teal-500 h-full" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs Bar -->
+    <div class="border-t border-slate-200/80 dark:border-slate-800/70 bg-slate-100/70 dark:bg-slate-900/40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex items-center gap-1 sm:gap-2 py-2 overflow-x-auto no-scrollbar" id="navTabsContainer">
+          
+          <button onclick="switchTab('tasks')" id="tab-btn-tasks" class="nav-tab active flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition whitespace-nowrap bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30">
+            <i data-lucide="check-square" class="w-4 h-4"></i>
+            <span>برنامه و تکالیف</span>
+            <span id="badgeTasksCount" class="text-[11px] px-1.5 py-0.2 rounded-full bg-teal-500/20 text-teal-700 dark:text-teal-300 font-mono">۰</span>
+          </button>
+
+          <button onclick="switchTab('focus')" id="tab-btn-focus" class="nav-tab flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/40">
+            <i data-lucide="timer" class="w-4 h-4"></i>
+            <span>اتاق تمرکز پومودورو</span>
+            <span id="navTimerRunningBadge" class="hidden w-2 h-2 rounded-full bg-teal-400 animate-ping"></span>
+          </button>
+
+          <button onclick="switchTab('spaced')" id="tab-btn-spaced" class="nav-tab flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/40">
+            <i data-lucide="brain" class="w-4 h-4"></i>
+            <span>مرور فاصله‌دار (۱-۳-۷-۳۰)</span>
+            <span id="badgeDueReviewsCount" class="hidden text-[11px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-300 font-bold font-mono">۰</span>
+          </button>
+
+          <button onclick="switchTab('exams')" id="tab-btn-exams" class="nav-tab flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/40">
+            <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+            <span>شمارش معکوس آزمون‌ها</span>
+            <span id="badgeExamsCount" class="text-[11px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono">۰</span>
+          </button>
+
+          <button onclick="switchTab('analytics')" id="tab-btn-analytics" class="nav-tab flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/40">
+            <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+            <span>آمار و تحلیل عملکرد</span>
+          </button>
+
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================
+       MAIN APP CONTAINER (TABS)
+  ======================================================== -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+
+    <!-- ========================================================
+         TAB 1: TASKS & STUDY PLAN (List & Kanban Views)
+    ======================================================== -->
+    <section id="tab-content-tasks" class="tab-pane space-y-6">
+      
+      <!-- Top Filter & View Bar -->
+      <div class="glass-card rounded-2xl p-4 sm:p-5">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          
+          <!-- Search & Filter Options -->
+          <div class="flex flex-wrap items-center gap-3 flex-1">
+            
+            <!-- Search Bar -->
+            <div class="relative flex-1 min-w-[220px]">
+              <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2"></i>
+              <input type="text" id="taskSearchInput" oninput="renderTasks()" placeholder="جستجو در تکالیف، دروس، نکات..." class="glass-input w-full pr-10 pl-4 py-2.5 rounded-xl text-sm placeholder-slate-400">
+            </div>
+
+            <!-- Subject Filter Dropdown -->
+            <select id="taskSubjectFilter" onchange="renderTasks()" class="glass-input px-3 py-2.5 rounded-xl text-sm">
+              <option value="all">تمام دروس و مباحث</option>
+              <!-- Populated dynamically -->
+            </select>
+
+            <!-- Priority Filter -->
+            <select id="taskPriorityFilter" onchange="renderTasks()" class="glass-input px-3 py-2.5 rounded-xl text-sm">
+              <option value="all">تمام اولویت‌ها</option>
+              <option value="high">اولویت بالا (فوری)</option>
+              <option value="medium">اولویت متوسط</option>
+              <option value="low">اولویت عادی/پایین</option>
+            </select>
+
+            <!-- Sort By -->
+            <select id="taskSortBy" onchange="renderTasks()" class="glass-input px-3 py-2.5 rounded-xl text-sm">
+              <option value="deadline">ترتیب: موعد تحویل (نزدیک‌ترین)</option>
+              <option value="priority">ترتیب: اولویت</option>
+              <option value="time">ترتیب: زمان مطالعه تخمینی</option>
+              <option value="title">ترتیب: الفبا</option>
+            </select>
+          </div>
+
+          <!-- View Mode Toggle (List vs Kanban) & Manage Subjects -->
+          <div class="flex items-center gap-2 self-end lg:self-auto">
+            
+            <!-- Manage Subjects Button -->
+            <button onclick="openSubjectModal()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition" title="مدیریت دسته‌بندی‌ها و رنگ دروس">
+              <i data-lucide="tags" class="w-4 h-4 text-teal-500 dark:text-teal-400"></i>
+              <span>مدیریت دروس</span>
+            </button>
+
+            <!-- View Switcher -->
+            <div class="bg-slate-200 dark:bg-slate-800/70 p-1 rounded-xl flex items-center gap-1 border border-slate-300 dark:border-slate-700/50">
+              <button id="viewBtnList" onclick="setTaskView('list')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-teal-500 text-white shadow-sm">
+                <i data-lucide="list" class="w-3.5 h-3.5"></i>
+                <span>فهرست</span>
+              </button>
+              <button id="viewBtnKanban" onclick="setTaskView('kanban')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+                <i data-lucide="columns" class="w-3.5 h-3.5"></i>
+                <span>کانبان</span>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Quick Status Filter Pills (Only visible in List View) -->
+        <div id="quickFilterPills" class="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/60">
+          <span class="text-xs text-slate-400 font-medium ml-1">فیلتر سریع:</span>
+          
+          <button onclick="setQuickFilter('all')" class="quick-pill px-3 py-1 rounded-lg text-xs font-semibold transition active-pill bg-teal-500/20 text-teal-600 dark:text-teal-300 border border-teal-500/40">
+            همه تکالیف (<span id="count-all">۰</span>)
+          </button>
+          
+          <button onclick="setQuickFilter('today')" class="quick-pill px-3 py-1 rounded-lg text-xs font-semibold transition text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/50 dark:bg-slate-800/40">
+            موعد امروز (<span id="count-today">۰</span>)
+          </button>
+
+          <button onclick="setQuickFilter('upcoming')" class="quick-pill px-3 py-1 rounded-lg text-xs font-semibold transition text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/50 dark:bg-slate-800/40">
+            روزهای آینده (<span id="count-upcoming">۰</span>)
+          </button>
+
+          <button onclick="setQuickFilter('overdue')" class="quick-pill px-3 py-1 rounded-lg text-xs font-semibold transition text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/50 dark:bg-slate-800/40">
+            دارای تاخیر (<span id="count-overdue">۰</span>)
+          </button>
+
+          <button onclick="setQuickFilter('spaced')" class="quick-pill px-3 py-1 rounded-lg text-xs font-semibold transition text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/50 dark:bg-slate-800/40">
+            تکرار فاصله‌دار فعال (<span id="count-spaced">۰</span>)
+          </button>
+        </div>
+
+      </div>
+
+      <!-- VIEW A: List View -->
+      <div id="tasksListView" class="space-y-3">
+        <!-- Rendered dynamically -->
+        <div id="taskListContainer" class="space-y-3"></div>
+      </div>
+
+      <!-- VIEW B: Interactive Kanban Board -->
+      <div id="tasksKanbanView" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        
+        <!-- Column 1: To Study -->
+        <div class="glass-card rounded-2xl p-4 flex flex-col min-h-[500px]" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'todo')">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200 dark:border-slate-800/70">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-slate-400"></span>
+              <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200">برای مطالعه</h3>
+            </div>
+            <span id="kanbanCount-todo" class="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">۰</span>
+          </div>
+          <div id="kanban-todo" class="space-y-3 flex-1 overflow-y-auto"></div>
+          <button onclick="openTaskModal('todo')" class="mt-3 w-full py-2 border border-dashed border-slate-300 dark:border-slate-700 hover:border-teal-500/60 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-teal-500 flex items-center justify-center gap-1.5 transition">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>افزودن به این ستون</span>
+          </button>
+        </div>
+
+        <!-- Column 2: Studying / In Progress -->
+        <div class="glass-card rounded-2xl p-4 flex flex-col min-h-[500px]" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'studying')">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200 dark:border-slate-800/70">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-teal-400 animate-pulse"></span>
+              <h3 class="font-bold text-sm text-teal-600 dark:text-teal-400">در حال مطالعه</h3>
+            </div>
+            <span id="kanbanCount-studying" class="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-700 dark:text-teal-300">۰</span>
+          </div>
+          <div id="kanban-studying" class="space-y-3 flex-1 overflow-y-auto"></div>
+          <button onclick="openTaskModal('studying')" class="mt-3 w-full py-2 border border-dashed border-slate-300 dark:border-slate-700 hover:border-teal-500/60 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-teal-500 flex items-center justify-center gap-1.5 transition">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>افزودن به این ستون</span>
+          </button>
+        </div>
+
+        <!-- Column 3: Needs Revision -->
+        <div class="glass-card rounded-2xl p-4 flex flex-col min-h-[500px]" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'review')">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200 dark:border-slate-800/70">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+              <h3 class="font-bold text-sm text-amber-600 dark:text-amber-400">نیاز به مرور</h3>
+            </div>
+            <span id="kanbanCount-review" class="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300">۰</span>
+          </div>
+          <div id="kanban-review" class="space-y-3 flex-1 overflow-y-auto"></div>
+          <button onclick="openTaskModal('review')" class="mt-3 w-full py-2 border border-dashed border-slate-300 dark:border-slate-700 hover:border-teal-500/60 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-teal-500 flex items-center justify-center gap-1.5 transition">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>افزودن به این ستون</span>
+          </button>
+        </div>
+
+        <!-- Column 4: Mastered -->
+        <div class="glass-card rounded-2xl p-4 flex flex-col min-h-[500px]" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'mastered')">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200 dark:border-slate-800/70">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+              <h3 class="font-bold text-sm text-emerald-600 dark:text-emerald-400">تسلط کامل</h3>
+            </div>
+            <span id="kanbanCount-mastered" class="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">۰</span>
+          </div>
+          <div id="kanban-mastered" class="space-y-3 flex-1 overflow-y-auto"></div>
+          <button onclick="openTaskModal('mastered')" class="mt-3 w-full py-2 border border-dashed border-slate-300 dark:border-slate-700 hover:border-teal-500/60 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-teal-500 flex items-center justify-center gap-1.5 transition">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>افزودن به این ستون</span>
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================================
+         TAB 2: FOCUS ROOM & POMODORO TIMER
+    ======================================================== -->
+    <section id="tab-content-focus" class="tab-pane hidden space-y-6">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Timer Main Widget (Left/Center) -->
+        <div class="lg:col-span-8 glass-card rounded-3xl p-6 sm:p-10 flex flex-col items-center relative overflow-hidden text-center">
+          
+          <!-- Subtle Glow Background -->
+          <div class="absolute -top-24 -left-24 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="absolute -bottom-24 -right-24 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+          <!-- Mode Selectors -->
+          <div class="flex flex-wrap items-center justify-center gap-2 bg-slate-200/80 dark:bg-slate-800/60 p-1.5 rounded-2xl border border-slate-300 dark:border-slate-700/60 max-w-md w-full mb-8">
+            <button onclick="setTimerPreset('pomodoro_25')" id="btnPreset25" class="timer-mode-btn flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-teal-500 text-white shadow-md">
+              ۲۵ / ۵ استاندارد
+            </button>
+            <button onclick="setTimerPreset('pomodoro_50')" id="btnPreset50" class="timer-mode-btn flex-1 py-2 px-3 rounded-xl text-xs font-bold transition text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200">
+              ۵۰ / ۱۰ تمرکز عمیق
+            </button>
+            <button onclick="setTimerPreset('custom')" id="btnPresetCustom" class="timer-mode-btn flex-1 py-2 px-3 rounded-xl text-xs font-bold transition text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200">
+              سفارشی
+            </button>
+            <button onclick="setTimerPreset('stopwatch')" id="btnPresetStopwatch" class="timer-mode-btn flex-1 py-2 px-3 rounded-xl text-xs font-bold transition text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200">
+              کرنومتر
+            </button>
+          </div>
+
+          <!-- Linked Task Banner -->
+          <div id="timerLinkedTaskBanner" class="w-full max-w-lg mb-8 bg-slate-100 dark:bg-slate-800/50 border border-teal-500/30 rounded-2xl p-4 flex items-center justify-between text-right">
+            <div class="flex items-center gap-3 overflow-hidden">
+              <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="book-open" class="w-5 h-5"></i>
+              </div>
+              <div class="overflow-hidden">
+                <span class="text-[11px] text-teal-600 dark:text-teal-400 font-bold block">تکلیف متصل شده برای تمرکز:</span>
+                <h4 id="timerLinkedTaskTitle" class="text-sm font-extrabold truncate text-slate-900 dark:text-slate-100">هیچ تکلیفی انتخاب نشده</h4>
+                <span id="timerLinkedTaskSubject" class="text-[11px] text-slate-500 dark:text-slate-400">مطالعه آزاد</span>
+              </div>
+            </div>
+            <button onclick="openSelectTaskForTimerModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-teal-500/20 hover:bg-teal-500/30 text-teal-700 dark:text-teal-300 border border-teal-500/40 flex-shrink-0 transition">
+              انتخاب تکلیف
+            </button>
+          </div>
+
+          <!-- Circular Clock Display -->
+          <div class="relative w-72 h-72 sm:w-80 sm:h-80 flex items-center justify-center my-4">
+            <!-- SVG Progress Ring -->
+            <svg class="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="44" stroke="currentColor" stroke-width="5" fill="transparent" class="text-slate-200 dark:text-slate-800/80" />
+              <circle id="timerProgressRing" cx="50" cy="50" r="44" stroke="currentColor" stroke-width="5.5" stroke-dasharray="276.46" stroke-dashoffset="0" stroke-linecap="round" fill="transparent" class="text-teal-500 dark:text-teal-400 transition-all duration-300" />
+            </svg>
+
+            <!-- Digital Time & State Display inside Ring -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span id="timerPhaseLabel" class="text-xs sm:text-sm font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 mb-1 px-3 py-0.5 rounded-full bg-teal-500/15 border border-teal-500/30">
+                تمرکز عمیق
+              </span>
+              <div id="timerDisplay" class="text-5xl sm:text-6xl font-black font-mono tracking-tight text-slate-900 dark:text-white my-1">
+                25:00
+              </div>
+              <span id="timerSessionsCounter" class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
+                جلسات ثبت شده: ۰
+              </span>
+            </div>
+          </div>
+
+          <!-- Control Buttons -->
+          <div class="flex items-center gap-4 mt-6">
+            
+            <!-- Reset Button -->
+            <button onclick="resetTimer()" class="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center transition active:scale-95" title="شروع مجدد زمان‌سنج">
+              <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Main Play/Pause Button -->
+            <button id="timerPlayBtn" onclick="toggleTimer()" class="px-8 py-4 rounded-2xl bg-gradient-to-l from-teal-400 via-teal-500 to-teal-600 hover:from-teal-500 hover:to-teal-700 text-white font-extrabold text-lg shadow-xl shadow-teal-500/30 flex items-center gap-3 transition transform active:scale-95">
+              <i data-lucide="play" id="timerPlayIcon" class="w-6 h-6 fill-current"></i>
+              <span id="timerPlayText">شروع تمرکز</span>
+            </button>
+
+            <!-- Complete / Log Session Button -->
+            <button onclick="manuallyLogSession()" class="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800 hover:bg-teal-500/20 text-slate-700 dark:text-slate-300 hover:text-teal-500 flex items-center justify-center transition active:scale-95" title="ثبت زمان مطالعه و دریافت XP">
+              <i data-lucide="check-circle" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <!-- Keyboard shortcut hint -->
+          <p class="text-xs text-slate-400 dark:text-slate-500 mt-6 font-medium">
+            کلید میانبر: فشردن کلید <kbd class="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-mono text-[11px]">Space</kbd> برای شروع / توقف
+          </p>
+
+        </div>
+
+        <!-- Timer Options & Sound Controller (Right) -->
+        <div class="lg:col-span-4 space-y-6">
+          
+          <!-- Custom Duration Settings Card -->
+          <div class="glass-card rounded-3xl p-6">
+            <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-4">
+              <i data-lucide="sliders" class="w-5 h-5 text-teal-500 dark:text-teal-400"></i>
+              <span>تنظیمات دلخواه زمان</span>
+            </h3>
+            
+            <div class="space-y-4">
+              <div>
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+                  <span>مدت زمان تمرکز (دقیقه):</span>
+                  <span id="customWorkValue" class="text-teal-600 dark:text-teal-400 font-mono font-bold">۲۵</span>
+                </div>
+                <input type="range" id="customWorkInput" min="5" max="90" step="5" value="25" oninput="updateCustomTimeInputs()" class="w-full">
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+                  <span>مدت زمان استراحت (دقیقه):</span>
+                  <span id="customBreakValue" class="text-teal-600 dark:text-teal-400 font-mono font-bold">۵</span>
+                </div>
+                <input type="range" id="customBreakInput" min="1" max="30" step="1" value="5" oninput="updateCustomTimeInputs()" class="w-full">
+              </div>
+
+              <button onclick="applyCustomDuration()" class="w-full py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-teal-500 hover:text-white rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 transition">
+                اعمال زمان سفارشی
+              </button>
+            </div>
+          </div>
+
+          <!-- Ambient Sound Generator Card (Web Audio API) -->
+          <div class="glass-card rounded-3xl p-6">
+            <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-3">
+              <i data-lucide="volume-2" class="w-5 h-5 text-teal-500 dark:text-teal-400"></i>
+              <span>محیط صوتی تمرکز (نویز قهوه‌ای / باران)</span>
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
+              تولید صوت نویز قهوه‌ای (Brown Noise) آفلاین توسط مرورگر برای حذف صداهای مزاحم محیط و ایجاد تمرکز پایدار.
+            </p>
+
+            <div class="flex items-center justify-between bg-slate-200/80 dark:bg-slate-800/60 p-3 rounded-2xl border border-slate-300 dark:border-slate-700/60 mb-3">
+              <span class="text-xs font-bold text-slate-800 dark:text-slate-200">پخش صوت نویز تمرکز</span>
+              <button id="ambientSwitchBtn" onclick="toggleAmbientSound()" class="px-4 py-1.5 rounded-xl text-xs font-bold transition bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                خاموش
+              </button>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <i data-lucide="volume-1" class="w-4 h-4 text-slate-400"></i>
+              <input type="range" id="ambientVolumeInput" min="0" max="1" step="0.05" value="0.1" oninput="setAmbientVolume(this.value)" class="w-full">
+              <i data-lucide="volume-2" class="w-4 h-4 text-slate-400"></i>
+            </div>
+          </div>
+
+          <!-- Today's Focus Summary Card -->
+          <div class="glass-card rounded-3xl p-6">
+            <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-3">
+              <i data-lucide="clock" class="w-5 h-5 text-teal-500 dark:text-teal-400"></i>
+              <span>خلاصه مطالعه امروز شما</span>
+            </h3>
+            
+            <div class="grid grid-cols-2 gap-3 mt-4 text-center">
+              <div class="bg-slate-200/60 dark:bg-slate-800/50 p-3 rounded-2xl">
+                <span id="todayTotalMinutes" class="text-2xl font-black text-teal-600 dark:text-teal-400 font-mono">۰</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400 block mt-0.5">دقیقه تمرکز</span>
+              </div>
+              <div class="bg-slate-200/60 dark:bg-slate-800/50 p-3 rounded-2xl">
+                <span id="todaySessionsCount" class="text-2xl font-black text-amber-500 dark:text-amber-400 font-mono">۰</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400 block mt-0.5">جلسه پومودورو</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================================
+         TAB 3: SPACED REPETITION ENGINE (1-3-7-30 Rule)
+    ======================================================== -->
+    <section id="tab-content-spaced" class="tab-pane hidden space-y-6">
+      
+      <!-- Scientific Concept Header Card -->
+      <div class="glass-card rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-teal-950/20 via-slate-900/50 to-slate-900/70 border-teal-500/20 relative overflow-hidden">
+        <div class="max-w-3xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 text-teal-600 dark:text-teal-300 text-xs font-bold border border-teal-500/30 mb-3">
+            <i data-lucide="brain" class="w-3.5 h-3.5"></i>
+            <span>منحنی فراموشی ابینگهاوس (Ebbinghaus Forgetting Curve)</span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mb-2">سیستم هوشمند مرور فاصله‌دار (قانون ۱-۳-۷-۳۰)</h2>
+          <p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-4">
+            تحقیقات علوم اعصاب یادگیری اثبات می‌کنند که مغز تا ۸۰٪ اطلاعات جدید را طی روزهای اولیه فراموش می‌کند مگر آنکه در فواصل بهینه 
+            <strong class="text-teal-600 dark:text-teal-400 font-bold">۱، ۳، ۷ و ۳۰ روز بعد</strong>
+            مجدداً بازیابی شوند تا اتصالات سیناپسی در حافظه پایدار شوند.
+          </p>
+          <div class="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span> مرحله ۱: ۱ روز بعد</div>
+            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span> مرحله ۲: ۳ روز بعد</div>
+            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-400"></span> مرحله ۳: ۷ روز بعد</div>
+            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span> مرحله ۴: ۳۰ روز بعد</div>
+            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> تسلط دائمی در حافظه بلندمدت</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today's Due Reviews (Action Required) -->
+      <div class="glass-card rounded-3xl p-6">
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-200 dark:border-slate-800/70">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 dark:text-amber-400 flex items-center justify-center">
+              <i data-lucide="bell-ring" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h3 class="font-extrabold text-base text-slate-900 dark:text-slate-100">مرورهای سررسید شده امروز</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">مباحثی که موعد مرور مجدد آن‌ها فرا رسیده است</p>
+            </div>
+          </div>
+          <span id="spacedDueCountBadge" class="text-xs font-mono font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">۰ مورد</span>
+        </div>
+
+        <div id="spacedDueContainer" class="space-y-3">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Spaced Repetition Pipeline Columns (Stages 1 through 5) -->
+      <div class="space-y-4">
+        <h3 class="font-extrabold text-base text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <i data-lucide="git-branch" class="w-5 h-5 text-teal-500 dark:text-teal-400"></i>
+          <span>چرخه وضعیت کلی مباحث در مراحل مرور</span>
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          
+          <!-- Stage 1 -->
+          <div class="glass-card rounded-2xl p-4 flex flex-col min-h-[350px]">
+            <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-200 dark:border-slate-800/60">
+              <div>
+                <span class="text-[10px] text-teal-600 dark:text-teal-400 font-bold block">مرحله اول (+۱ روز)</span>
+                <h4 class="font-bold text-xs text-slate-800 dark:text-slate-200">مرور ۲۴ ساعت</h4>
+              </div>
+              <span id="stageCount-1" class="text-xs font-mono px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-teal-600 dark:text-teal-300 font-bold">۰</span>
+            </div>
+            <div id="stageList-1" class="space-y-2 flex-1 overflow-y-auto"></div>
+          </div>
+
+          <!-- Stage 2 -->
+          <div class="glass-card rounded-2xl p-4 flex flex-col min-h-[350px]">
+            <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-200 dark:border-slate-800/60">
+              <div>
+                <span class="text-[10px] text-cyan-600 dark:text-cyan-400 font-bold block">مرحله دوم (+۳ روز)</span>
+                <h4 class="font-bold text-xs text-slate-800 dark:text-slate-200">مرور روز سوم</h4>
+              </div>
+              <span id="stageCount-2" class="text-xs font-mono px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-cyan-600 dark:text-cyan-300 font-bold">۰</span>
+            </div>
+            <div id="stageList-2" class="space-y-2 flex-1 overflow-y-auto"></div>
+          </div>
+
+          <!-- Stage 3 -->
+          <div class="glass-card rounded-2xl p-4 flex flex-col min-h-[350px]">
+            <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-200 dark:border-slate-800/60">
+              <div>
+                <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold block">مرحله سوم (+۷ روز)</span>
+                <h4 class="font-bold text-xs text-slate-800 dark:text-slate-200">مرور هفتگی</h4>
+              </div>
+              <span id="stageCount-3" class="text-xs font-mono px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 font-bold">۰</span>
+            </div>
+            <div id="stageList-3" class="space-y-2 flex-1 overflow-y-auto"></div>
+          </div>
+
+          <!-- Stage 4 -->
+          <div class="glass-card rounded-2xl p-4 flex flex-col min-h-[350px]">
+            <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-200 dark:border-slate-800/60">
+              <div>
+                <span class="text-[10px] text-purple-600 dark:text-purple-400 font-bold block">مرحله چهارم (+۳۰ روز)</span>
+                <h4 class="font-bold text-xs text-slate-800 dark:text-slate-200">مرور ماهانه</h4>
+              </div>
+              <span id="stageCount-4" class="text-xs font-mono px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-purple-600 dark:text-purple-300 font-bold">۰</span>
+            </div>
+            <div id="stageList-4" class="space-y-2 flex-1 overflow-y-auto"></div>
+          </div>
+
+          <!-- Stage 5: Mastered -->
+          <div class="glass-card rounded-2xl p-4 flex flex-col min-h-[350px] border-emerald-500/20 bg-emerald-500/5">
+            <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-200 dark:border-slate-800/60">
+              <div>
+                <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block">مرحله نهایی (تثبیت)</span>
+                <h4 class="font-bold text-xs text-emerald-600 dark:text-emerald-300">حافظه دائم</h4>
+              </div>
+              <span id="stageCount-5" class="text-xs font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold">۰</span>
+            </div>
+            <div id="stageList-5" class="space-y-2 flex-1 overflow-y-auto"></div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================
+         TAB 4: EXAM COUNTDOWN TRACKER
+    ======================================================== -->
+    <section id="tab-content-exams" class="tab-pane hidden space-y-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+            <i data-lucide="calendar-check" class="w-6 h-6 text-teal-500 dark:text-teal-400"></i>
+            <span>شمارش معکوس آزمون‌ها و اهداف تحصیلی</span>
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            ردیابی دقیق روزها و ساعات باقیمانده تا امتحانات، نمره هدف و میزان آمادگی درسی
+          </p>
+        </div>
+
+        <button onclick="openExamModal()" class="flex items-center gap-2 bg-gradient-to-l from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-teal-500/25 text-sm transition active:scale-95">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>افزودن آزمون جدید</span>
+        </button>
+      </div>
+
+      <!-- Exam Cards Grid -->
+      <div id="examsGridContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Rendered dynamically -->
+      </div>
+
+    </section>
+
+    <!-- ========================================================
+         TAB 5: STUDY ANALYTICS & INSIGHTS
+    ======================================================== -->
+    <section id="tab-content-analytics" class="tab-pane hidden space-y-6">
+      
+      <!-- KPI Stats Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <div class="glass-card rounded-3xl p-5 border-l-4 border-l-teal-500">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold">مجموع ساعات مطالعه</span>
+            <i data-lucide="clock" class="w-5 h-5 text-teal-500 dark:text-teal-400"></i>
+          </div>
+          <div id="statTotalHours" class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">0:00</div>
+          <span class="text-[11px] text-teal-600 dark:text-teal-400 mt-1 block">ثبت شده در سیستم</span>
+        </div>
+
+        <div class="glass-card rounded-3xl p-5 border-l-4 border-l-emerald-500">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold">تکالیف تکمیل شده</span>
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-500 dark:text-emerald-400"></i>
+          </div>
+          <div id="statCompletedTasks" class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">۰ / ۰</div>
+          <span id="statCompletionRate" class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 block">۰٪ نرخ تکمیل</span>
+        </div>
+
+        <div class="glass-card rounded-3xl p-5 border-l-4 border-l-cyan-500">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold">جلسات پومودورو</span>
+            <i data-lucide="zap" class="w-5 h-5 text-cyan-500 dark:text-cyan-400"></i>
+          </div>
+          <div id="statTotalSessions" class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">۰</div>
+          <span class="text-[11px] text-cyan-600 dark:text-cyan-400 mt-1 block">نشست تمرکز عمیق</span>
+        </div>
+
+        <div class="glass-card rounded-3xl p-5 border-l-4 border-l-purple-500">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+            <span class="text-xs font-semibold">مباحث در تکرار فاصله‌دار</span>
+            <i data-lucide="repeat" class="w-5 h-5 text-purple-500 dark:text-purple-400"></i>
+          </div>
+          <div id="statSpacedCount" class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">۰</div>
+          <span class="text-[11px] text-purple-600 dark:text-purple-400 mt-1 block">در چرخه لایتنر</span>
+        </div>
+
+      </div>
+
+      <!-- Charts Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Bar Chart: 7-Day Trend -->
+        <div class="lg:col-span-7 glass-card rounded-3xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-extrabold text-base text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <i data-lucide="activity" class="w-5 h-5 text-teal-500 dark:text-teal-400"></i>
+                <span>روند دقایق مطالعه در ۷ روز اخیر</span>
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">توزیع زمان تمرکز در طول روزهای هفته</p>
+            </div>
+            <span class="text-xs font-mono font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2.5 py-1 rounded-xl border border-teal-500/20">۷ روز گذشته</span>
+          </div>
+
+          <div class="h-64 relative">
+            <canvas id="weeklyStudyBarChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Doughnut Chart: Time per Subject -->
+        <div class="lg:col-span-5 glass-card rounded-3xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-extrabold text-base text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <i data-lucide="pie-chart" class="w-5 h-5 text-teal-500 dark:text-teal-400"></i>
+                <span>توزیع زمان بر حسب دروس</span>
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">سهم هر مبحث آموزشی از کل ساعات</p>
+            </div>
+          </div>
+
+          <div class="h-64 relative flex items-center justify-center">
+            <canvas id="subjectDoughnutChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Smart Study Advice Box -->
+      <div class="glass-card rounded-3xl p-6 border-teal-500/30">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="lightbulb" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h4 class="font-extrabold text-base text-slate-900 dark:text-slate-100 mb-1">پیشنهاد هوشمند مطالعه برای شما</h4>
+            <p id="smartRecommendationText" class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              در حال آنالیز الگوهای مطالعه شما...
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================================
+       PERSISTENT FLOATING POMODORO MINI-BAR
+  ======================================================== -->
+  <div id="floatingTimerBar" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-white/95 dark:bg-slate-900/90 border border-teal-500/40 shadow-2xl shadow-black/40 backdrop-blur-xl rounded-2xl px-5 py-3 flex items-center gap-4 max-w-md w-[92%] transition-all duration-300">
+    <div class="w-3 h-3 rounded-full bg-teal-400 animate-ping"></div>
+    <div class="flex-1 overflow-hidden cursor-pointer" onclick="switchTab('focus')">
+      <div class="flex items-center gap-2">
+        <span id="floatingTimerDisplay" class="font-mono font-black text-teal-600 dark:text-teal-400 text-lg">25:00</span>
+        <span class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate" id="floatingTaskTitle">در حال تمرکز</span>
+      </div>
+      <span class="text-[10px] text-slate-500 dark:text-slate-400">برای بازگشت به اتاق تمرکز کلیک کنید</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="toggleTimer()" id="floatingPlayBtn" class="p-2 rounded-xl bg-teal-500 text-white shadow-md">
+        <i data-lucide="pause" class="w-4 h-4"></i>
+      </button>
+      <button onclick="switchTab('focus')" class="p-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+        <i data-lucide="maximize-2" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL: ADD / EDIT TASK
+  ======================================================== -->
+  <div id="taskModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
+    <div class="glass-card w-full max-w-xl rounded-3xl p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto my-auto shadow-2xl">
+      
+      <!-- Close Button -->
+      <button onclick="closeTaskModal()" class="absolute left-6 top-6 p-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <h3 id="taskModalTitle" class="text-lg sm:text-xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+        <i data-lucide="file-plus" class="w-5 h-5 text-teal-500 dark:text-teal-400"></i>
+        <span>افزودن تکلیف و مبحث جدید</span>
+      </h3>
+
+      <form id="taskForm" onsubmit="handleTaskFormSubmit(event)" class="space-y-4 text-right">
+        <input type="hidden" id="taskFormId">
+
+        <!-- Title -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">عنوان تکلیف / مبحث مطالعه *</label>
+          <input type="text" id="taskFormTitle" required placeholder="مثال: فصل ۳ شیمی دوازدهم - تعادل‌های شیمیایی" class="glass-input w-full px-4 py-2.5 rounded-xl text-sm">
+        </div>
+
+        <!-- Subject & Priority -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">درس / دسته‌بندی *</label>
+            <select id="taskFormSubject" required class="glass-input w-full px-3 py-2.5 rounded-xl text-sm">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">اولویت انجام *</label>
+            <select id="taskFormPriority" required class="glass-input w-full px-3 py-2.5 rounded-xl text-sm">
+              <option value="high">🔴 بالا (فوری و حیاتی)</option>
+              <option value="medium" selected>🟡 متوسط (عادی)</option>
+              <option value="low">🟢 پایین (در اولویت بعد)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Deadline & Estimated Time -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">موعد تحویل یا تاریخ مطالعه</label>
+            <input type="datetime-local" id="taskFormDeadline" class="glass-input w-full px-3 py-2.5 rounded-xl text-sm">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">زمان تخمینی مطالعه (دقیقه)</label>
+            <input type="number" id="taskFormEstimatedTime" min="5" step="5" value="60" class="glass-input w-full px-4 py-2.5 rounded-xl text-sm">
+          </div>
+        </div>
+
+        <!-- Initial Status -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">وضعیت اولیه</label>
+          <select id="taskFormStatus" class="glass-input w-full px-3 py-2.5 rounded-xl text-sm">
+            <option value="todo">برای مطالعه (To Study)</option>
+            <option value="studying">در حال مطالعه (Studying)</option>
+            <option value="review">نیاز به مرور (Needs Revision)</option>
+            <option value="mastered">تسلط کامل (Mastered)</option>
+          </select>
+        </div>
+
+        <!-- Spaced Repetition Toggle (1-3-7-30 Rule) -->
+        <div class="p-4 rounded-2xl bg-teal-500/10 border border-teal-500/30 flex items-start gap-3">
+          <input type="checkbox" id="taskFormSpaced" class="mt-1 w-4 h-4 rounded text-teal-500 focus:ring-teal-400">
+          <div>
+            <label for="taskFormSpaced" class="font-bold text-sm text-teal-700 dark:text-teal-300 cursor-pointer block">
+              فعال‌سازی سیستم تکرار فاصله‌دار (۱-۳-۷-۳۰)
+            </label>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              با فعال کردن این گزینه، پس از اتمام این مبحث، دوره‌های مرور به طور خودکار در روزهای ۱، ۳، ۷ و ۳۰ بعد برنامه‌ریزی می‌شوند.
+            </p>
+          </div>
+        </div>
+
+        <!-- Interactive Subtasks Builder -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">ریزتکالیف و چک‌لیست اقدامات</label>
+            <span class="text-[11px] text-slate-400">مثال: خواندن متن، حل ۱۰ تست</span>
+          </div>
+          
+          <div class="flex items-center gap-2 mb-2">
+            <input type="text" id="modalSubtaskInput" placeholder="عنوان ریزتکلیف جدید..." class="glass-input flex-1 px-3 py-2 rounded-xl text-xs">
+            <button type="button" onclick="addModalSubtask()" class="px-3 py-2 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-700 dark:text-teal-300 border border-teal-500/30 text-xs font-bold transition">
+              افزودن
+            </button>
+          </div>
+
+          <div id="modalSubtasksList" class="space-y-1.5 max-h-36 overflow-y-auto">
+            <!-- Rendered subtasks inside modal -->
+          </div>
+        </div>
+
+        <!-- Notes & Formulas -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">یادداشت‌ها، فرمول‌های کلیدی و نکات تستی</label>
+          <textarea id="taskFormNotes" rows="3" placeholder="فرمول‌های مهم، شماره صفحات کتاب، تله‌های تستی..." class="glass-input w-full p-3 rounded-xl text-xs"></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800/80">
+          <button type="button" onclick="closeTaskModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 transition">
+            انصراف
+          </button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-l from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white shadow-lg shadow-teal-500/25 transition">
+            ذخیره تکلیف
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL: MANAGE SUBJECTS
+  ======================================================== -->
+  <div id="subjectModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
+    <div class="glass-card w-full max-w-lg rounded-3xl p-6 sm:p-8 relative shadow-2xl">
+      <button onclick="closeSubjectModal()" class="absolute left-6 top-6 p-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-500">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <h3 class="text-lg font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+        <i data-lucide="palette" class="w-5 h-5 text-teal-500 dark:text-teal-400"></i>
+        <span>مدیریت دروس و دسته‌بندی‌ها</span>
+      </h3>
+
+      <!-- Add New Subject Form -->
+      <form onsubmit="handleSubjectCreate(event)" class="flex items-center gap-2 mb-6">
+        <input type="text" id="newSubjectName" required placeholder="نام درس جدید (مثلا: شیمی آلی)" class="glass-input flex-1 px-4 py-2.5 rounded-xl text-xs">
+        <input type="color" id="newSubjectColor" value="#14b8a6" class="w-10 h-10 p-1 rounded-xl bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 cursor-pointer">
+        <button type="submit" class="px-4 py-2.5 rounded-xl bg-teal-500 text-white font-bold text-xs hover:bg-teal-600 transition flex-shrink-0">
+          افزودن
+        </button>
+      </form>
+
+      <!-- Subject List -->
+      <div id="subjectListContainer" class="space-y-2 max-h-64 overflow-y-auto">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL: ADD / EDIT EXAM
+  ======================================================== -->
+  <div id="examModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
+    <div class="glass-card w-full max-w-lg rounded-3xl p-6 sm:p-8 relative shadow-2xl">
+      <button onclick="closeExamModal()" class="absolute left-6 top-6 p-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-500">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <h3 id="examModalTitle" class="text-lg font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+        <i data-lucide="calendar-plus" class="w-5 h-5 text-teal-500 dark:text-teal-400"></i>
+        <span>افزودن آزمون جدید</span>
+      </h3>
+
+      <form id="examForm" onsubmit="handleExamFormSubmit(event)" class="space-y-4 text-right">
+        <input type="hidden" id="examFormId">
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">نام آزمون یا امتحان *</label>
+          <input type="text" id="examFormTitle" required placeholder="مثال: کنکور تجربی ۱۴۰۵ / آزمون میان‌ترم ریاضی" class="glass-input w-full px-4 py-2.5 rounded-xl text-sm">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">درس مربوطه</label>
+            <select id="examFormSubject" class="glass-input w-full px-3 py-2.5 rounded-xl text-sm">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">تاریخ و ساعت برگزاری *</label>
+            <input type="datetime-local" id="examFormDate" required class="glass-input w-full px-3 py-2.5 rounded-xl text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">نمره یا رتبه هدف</label>
+            <input type="text" id="examFormTarget" placeholder="مثال: نمره ۲۰ یا رتبه زیر ۲۰۰" class="glass-input w-full px-3 py-2.5 rounded-xl text-sm">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              درصد آمادگی فعلی: <span id="examReadinessLabel" class="text-teal-600 dark:text-teal-400 font-bold font-mono">50%</span>
+            </label>
+            <input type="range" id="examFormReadiness" min="0" max="100" value="50" oninput="document.getElementById('examReadinessLabel').innerText = this.value + '%'" class="w-full mt-2">
+          </div>
+        </div>
+
+        <!-- Topics to cover -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">سرفصل‌ها و مباحث کلیدی آزمون</label>
+          <input type="text" id="examFormTopics" placeholder="مبحث اول، مبحث دوم، فرمول‌های انتگرال" class="glass-input w-full px-4 py-2.5 rounded-xl text-xs">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">نکات تکمیلی</label>
+          <textarea id="examFormNotes" rows="2" placeholder="مکان برگزاری، لوازم مورد نیاز..." class="glass-input w-full p-3 rounded-xl text-xs"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800/80">
+          <button type="button" onclick="closeExamModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            انصراف
+          </button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl text-xs font-bold bg-teal-500 hover:bg-teal-600 text-white shadow-lg shadow-teal-500/25">
+            ذخیره آزمون
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL: SELECT TASK TO LINK WITH FOCUS TIMER
+  ======================================================== -->
+  <div id="selectTaskModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
+    <div class="glass-card w-full max-w-md rounded-3xl p-6 relative shadow-2xl">
+      <button onclick="closeSelectTaskModal()" class="absolute left-6 top-6 p-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-500">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <h3 class="text-base font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+        <i data-lucide="link" class="w-5 h-5 text-teal-500 dark:text-teal-400"></i>
+        <span>انتخاب تکلیف برای تمرکز</span>
+      </h3>
+
+      <div class="space-y-2 mb-4 max-h-72 overflow-y-auto" id="selectTaskModalList">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <button onclick="unlinkTaskFromTimer()" class="w-full py-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-300 transition">
+        مطالعه آزاد بدون تکلیف متصل
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL: SPACED REPETITION REVIEW LOGGING
+  ======================================================== -->
+  <div id="spacedReviewModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="glass-card w-full max-w-md rounded-3xl p-6 sm:p-8 relative text-center shadow-2xl">
+      <div class="w-16 h-16 rounded-3xl bg-teal-500/20 text-teal-500 dark:text-teal-400 mx-auto flex items-center justify-center mb-4">
+        <i data-lucide="sparkles" class="w-8 h-8"></i>
+      </div>
+      
+      <h3 class="text-lg font-black text-slate-900 dark:text-white mb-1">ثبت نتیجه مرور فاصله‌دار</h3>
+      <h4 id="spacedModalTaskTitle" class="text-sm font-bold text-teal-600 dark:text-teal-400 mb-4 truncate px-4">نام مبحث</h4>
+      
+      <p class="text-xs text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
+        کیفیت یادآوری شما در این مرور چطور بود؟ بر اساس پاسخ شما، مرحله بعدی طبق منحنی فراموشی ۱-۳-۷-۳۰ تنظیم می‌شود.
+      </p>
+
+      <div class="space-y-2.5">
+        <button onclick="logSpacedResult('easy')" class="w-full py-3 px-4 rounded-2xl bg-teal-500/15 hover:bg-teal-500 text-teal-700 dark:text-teal-300 hover:text-white border border-teal-500/40 text-xs font-bold flex items-center justify-between transition">
+          <span>🟢 تسلط عالی (رفتن به مرحله بعد)</span>
+          <span id="nextIntervalEasyHint" class="font-mono text-[11px] opacity-80">+۳ روز</span>
+        </button>
+
+        <button onclick="logSpacedResult('hard')" class="w-full py-3 px-4 rounded-2xl bg-amber-500/15 hover:bg-amber-500 text-amber-700 dark:text-amber-300 hover:text-white border border-amber-500/40 text-xs font-bold flex items-center justify-between transition">
+          <span>🟡 کمی دشوار (تکرار همین مرحله فردا)</span>
+          <span class="font-mono text-[11px] opacity-80">+۱ روز</span>
+        </button>
+
+        <button onclick="logSpacedResult('forgot')" class="w-full py-3 px-4 rounded-2xl bg-rose-500/15 hover:bg-rose-500 text-rose-700 dark:text-rose-300 hover:text-white border border-rose-500/40 text-xs font-bold flex items-center justify-between transition">
+          <span>🔴 فراموش کرده بودم (شروع مجدد از مرحله ۱)</span>
+          <span class="font-mono text-[11px] opacity-80">+۱ روز</span>
+        </button>
+
+        <button onclick="logSpacedResult('mastered')" class="w-full py-3 px-4 rounded-2xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-700 dark:text-emerald-300 hover:text-white border border-emerald-500/40 text-xs font-bold flex items-center justify-between transition">
+          <span>🏆 تسلط کامل و دائمی (حافظه بلندمدت)</span>
+          <span class="font-mono text-[11px] opacity-80">تثبیت</span>
+        </button>
+      </div>
+
+      <!-- Option to automatically duplicate/create review task -->
+      <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-center gap-2">
+        <input type="checkbox" id="autoCreateDuplicateReviewTask" checked class="w-4 h-4 rounded text-teal-500">
+        <label for="autoCreateDuplicateReviewTask" class="text-xs text-slate-600 dark:text-slate-400 select-none cursor-pointer">
+          ایجاد تکلیف مرور مجزا در لیست تسک‌ها با موعد مقرر
+        </label>
+      </div>
+
+      <button onclick="closeSpacedModal()" class="mt-4 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+        بعداً مرور خواهم کرد
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL: DATA BACKUP / EXPORT / IMPORT
+  ======================================================== -->
+  <div id="dataModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="glass-card w-full max-w-md rounded-3xl p-6 sm:p-8 relative shadow-2xl">
+      <button onclick="closeDataModal()" class="absolute left-6 top-6 p-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-500">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <h3 class="text-lg font-black text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+        <i data-lucide="hard-drive" class="w-5 h-5 text-teal-500 dark:text-teal-400"></i>
+        <span>پشتیبان‌گیری و ذخیره‌سازی داده‌ها</span>
+      </h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+        تمام داده‌ها در حافظه محلی مرورگر (localStorage) ذخیره می‌شوند. برای اطمینان می‌توانید از برنامه خروجی فایل JSON بگیرید.
+      </p>
+
+      <div class="space-y-3">
+        <!-- Export Button -->
+        <button onclick="exportDataJSON()" class="w-full py-3 px-4 rounded-2xl bg-teal-500/20 hover:bg-teal-500 text-teal-700 dark:text-teal-300 hover:text-white border border-teal-500/40 font-bold text-xs flex items-center justify-center gap-2 transition">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>دانلود فایل پشتیبان (Export JSON)</span>
+        </button>
+
+        <!-- Import Button -->
+        <label class="w-full py-3 px-4 rounded-2xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition text-slate-800 dark:text-slate-200">
+          <i data-lucide="upload" class="w-4 h-4"></i>
+          <span>بازیابی از فایل پشتیبان (Import JSON)</span>
+          <input type="file" id="importFileInput" accept=".json" onchange="importDataJSON(event)" class="hidden">
+        </label>
+
+        <!-- Reset to Sample Data -->
+        <button onclick="confirmResetToSampleData()" class="w-full py-3 px-4 rounded-2xl bg-slate-200/50 dark:bg-slate-800/40 hover:bg-amber-500/20 text-slate-600 dark:text-slate-400 hover:text-amber-500 font-bold text-xs flex items-center justify-center gap-2 transition">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          <span>بارگذاری داده‌های نمونه فارسی</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-6 right-6 z-50 space-y-2 pointer-events-none"></div>
+
+  <!-- ========================================================
+       JAVASCRIPT APPLICATION CORE LOGIC
+  ======================================================== -->
+  <script>
+    /* ==========================================
+       1. INITIAL STATE & STORAGE MANAGEMENT
+    ========================================== */
+    const STORAGE_KEY = 'advanced_study_manager_state_v1';
+
+    // Rich Persian demo data
+    const DEFAULT_DATA = {
+      user: {
+        xp: 220,
+        level: 2,
+        streak: 4,
+        lastStudyDate: new Date().toISOString().split('T')[0],
+        totalStudyMinutes: 345,
+        totalSessions: 12
+      },
+      subjects: [
+        { id: 'subj_1', name: 'ریاضیات و حسابان', color: '#3b82f6', totalMinutes: 145 },
+        { id: 'subj_2', name: 'فیزیک و دینامیک', color: '#8b5cf6', totalMinutes: 90 },
+        { id: 'subj_3', name: 'شیمی کنکور', color: '#f59e0b', totalMinutes: 65 },
+        { id: 'subj_4', name: 'برنامه‌نویسی وب و هوش مصنوعی', color: '#06b6d4', totalMinutes: 45 }
+      ],
+      tasks: [
+        {
+          id: 'task_1',
+          title: 'حل تست‌های انتگرال و کاربرد مشتق',
+          subjectId: 'subj_1',
+          priority: 'high',
+          status: 'studying',
+          deadline: new Date(Date.now() + 86400000).toISOString().slice(0, 16),
+          estimatedMinutes: 90,
+          actualMinutes: 50,
+          notes: 'فرمول‌های مهم ص ۶۴ تا ۷۲: مساحت زیر نمودار و انتگرال توابع مثلثاتی معین',
+          subtasks: [
+            { id: 'st_1', text: 'مرور درسنامه و هایلایت‌های کتاب', done: true },
+            { id: 'st_2', text: 'حل ۱۰ تست آموزشی ابتدایی', done: true },
+            { id: 'st_3', text: 'حل تست‌های زمان‌دار کنکور سال‌های اخیر', done: false }
+          ],
+          spacedRepetition: {
+            enabled: true,
+            stage: 2, // 1: +1d, 2: +3d, 3: +7d, 4: +30d, 5: mastered
+            intervalDays: 3,
+            nextReview: new Date().toISOString().slice(0, 10), // due today for demo!
+            lastReviewed: new Date(Date.now() - 86400000).toISOString()
+          },
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 'task_2',
+          title: 'خلاصه‌نویسی قوانین نیوتون و دینامیک',
+          subjectId: 'subj_2',
+          priority: 'medium',
+          status: 'todo',
+          deadline: new Date(Date.now() + 172800000).toISOString().slice(0, 16),
+          estimatedMinutes: 60,
+          actualMinutes: 0,
+          notes: 'رسم دیاگرام آزاد نیروها در سطوح شیبدار و اصطکاک ایستایی',
+          subtasks: [
+            { id: 'st_4', text: 'بررسی مثال‌های فصل دینامیک', done: false },
+            { id: 'st_5', text: 'طراحی نقشه ذهنی فرمول‌های حرکت', done: false }
+          ],
+          spacedRepetition: {
+            enabled: true,
+            stage: 1,
+            intervalDays: 1,
+            nextReview: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
+            lastReviewed: null
+          },
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 'task_3',
+          title: 'تعادل‌های شیمیایی و اسید و باز',
+          subjectId: 'subj_3',
+          priority: 'high',
+          status: 'review',
+          deadline: new Date(Date.now() + 43200000).toISOString().slice(0, 16),
+          estimatedMinutes: 45,
+          actualMinutes: 45,
+          notes: 'اصل لوشاتلیه، اثر تغییر فشار و دما بر ثابت تعادل K و شناساگرها',
+          subtasks: [
+            { id: 'st_6', text: 'مرور خلاصه‌ها و جداول pH', done: true },
+            { id: 'st_7', text: 'حل ۵ مسئله تشریحی نمونه', done: true }
+          ],
+          spacedRepetition: {
+            enabled: true,
+            stage: 3,
+            intervalDays: 7,
+            nextReview: new Date(Date.now() + 259200000).toISOString().slice(0, 10),
+            lastReviewed: new Date().toISOString()
+          },
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 'task_4',
+          title: 'طراحی اپلیکیشن مدیریت مطالعه با Tailwind و JS',
+          subjectId: 'subj_4',
+          priority: 'low',
+          status: 'mastered',
+          deadline: new Date(Date.now() - 86400000).toISOString().slice(0, 16),
+          estimatedMinutes: 75,
+          actualMinutes: 75,
+          notes: 'پیاده‌سازی ماژول‌های Web Audio API، Canvas Confetti و Chart.js',
+          subtasks: [
+            { id: 'st_8', text: 'طراحی رابط کاربری شیشه‌ای مدرن RTL', done: true },
+            { id: 'st_9', text: 'کدنویسی موتور پومودورو و تکرار فاصله‌دار', done: true }
+          ],
+          spacedRepetition: {
+            enabled: true,
+            stage: 5,
+            intervalDays: 30,
+            nextReview: new Date(Date.now() + 1800000000).toISOString().slice(0, 10),
+            lastReviewed: new Date().toISOString()
+          },
+          createdAt: new Date().toISOString()
+        }
+      ],
+      exams: [
+        {
+          id: 'exam_1',
+          title: 'کنکور سراسری و آزمون جامع نهایی',
+          subjectId: 'subj_1',
+          examDate: new Date(Date.now() + 3888000000).toISOString().slice(0, 16), // ~45 days
+          targetScore: 'درصد بالای ۸۵٪ یا تراز ۱۱۰۰۰',
+          readiness: 78,
+          topics: 'حسابان، هندسه تحلیلی، گسسته و آمار',
+          notes: 'همراه داشتن کارت ورود به جلسه و ساعت مچی'
+        },
+        {
+          id: 'exam_2',
+          title: 'امتحان پایانی فیزیک الکتریسیته و مغناطیس',
+          subjectId: 'subj_2',
+          examDate: new Date(Date.now() + 691200000).toISOString().slice(0, 16), // ~8 days
+          targetScore: 'نمره ۲۰ کامل',
+          readiness: 65,
+          topics: 'قانون کولن، میدان الکتریکی، خازن‌ها، مدار و القای فاراده',
+          notes: 'تمرکز ویژه روی مدار چندحلقه و فرمول‌های مغناطیس'
+        }
+      ],
+      dailyStudyHistory: [
+        { date: getPastDateString(6), minutes: 90 },
+        { date: getPastDateString(5), minutes: 120 },
+        { date: getPastDateString(4), minutes: 45 },
+        { date: getPastDateString(3), minutes: 110 },
+        { date: getPastDateString(2), minutes: 140 },
+        { date: getPastDateString(1), minutes: 75 },
+        { date: getPastDateString(0), minutes: 60 }
+      ]
+    };
+
+    function getPastDateString(daysAgo) {
+      const d = new Date();
+      d.setDate(d.getDate() - daysAgo);
+      return d.toISOString().split('T')[0];
+    }
+
+    // App State
+    let appState = loadState();
+
+    function loadState() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          return JSON.parse(stored);
+        }
+      } catch (e) {
+        console.error('Error loading state from localStorage:', e);
+      }
+      return JSON.parse(JSON.stringify(DEFAULT_DATA));
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {
+        console.error('Error saving state to localStorage:', e);
+      }
+    }
+
+    /* ==========================================
+       2. WEB AUDIO API SYNTHESIZER
+    ========================================== */
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    // Notification chimes
+    function playSound(type = 'chime') {
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+
+        if (type === 'start') {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+          osc.frequency.exponentialRampToValueAtTime(783.99, ctx.currentTime + 0.15); // G5
+          gain.gain.setValueAtTime(0.12, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.4);
+        } else if (type === 'complete') {
+          // Melodic victory chord
+          [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
+            gain.gain.setValueAtTime(0.18, ctx.currentTime + i * 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.6);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + i * 0.1);
+            osc.stop(ctx.currentTime + i * 0.1 + 0.6);
+          });
+        } else if (type === 'click') {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, ctx.currentTime);
+          gain.gain.setValueAtTime(0.04, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.05);
+        }
+      } catch (e) {
+        console.warn('Audio play error:', e);
+      }
+    }
+
+    // Offline Ambient Brown Noise Generator (Rain / White noise acoustics)
+    let ambientSource = null;
+    let ambientGain = null;
+    let isAmbientPlaying = false;
+
+    function toggleAmbientSound(forceState) {
+      const nextState = forceState !== undefined ? forceState : !isAmbientPlaying;
+      if (nextState) {
+        try {
+          const ctx = getAudioContext();
+          if (!ctx) return;
+
+          const bufferSize = 2 * ctx.sampleRate;
+          const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+          const output = noiseBuffer.getChannelData(0);
+          let lastOut = 0.0;
+          
+          // Brown noise generation (soothing rain-like background)
+          for (let i = 0; i < bufferSize; i++) {
+            const white = Math.random() * 2 - 1;
+            output[i] = (lastOut + (0.02 * white)) / 1.02;
+            lastOut = output[i];
+            output[i] *= 3.5;
+          }
+
+          ambientSource = ctx.createBufferSource();
+          ambientSource.buffer = noiseBuffer;
+          ambientSource.loop = true;
+
+          ambientGain = ctx.createGain();
+          const volInput = document.getElementById('ambientVolumeInput');
+          const vol = volInput ? parseFloat(volInput.value) : 0.1;
+          ambientGain.gain.setValueAtTime(vol, ctx.currentTime);
+
+          ambientSource.connect(ambientGain);
+          ambientGain.connect(ctx.destination);
+          ambientSource.start();
+          isAmbientPlaying = true;
+          showToast('صدای تمرکز عمیق (نویز باران) فعال شد 🌧️');
+        } catch (e) {
+          console.warn('Ambient noise error:', e);
+        }
+      } else {
+        if (ambientSource) {
+          try {
+            ambientSource.stop();
+            ambientSource.disconnect();
+          } catch (e) {}
+          ambientSource = null;
+        }
+        isAmbientPlaying = false;
+        showToast('پخش صدای تمرکز متوقف شد');
+      }
+      updateAmbientUI();
+    }
+
+    function setAmbientVolume(val) {
+      if (ambientGain && audioCtx) {
+        ambientGain.gain.setValueAtTime(parseFloat(val), audioCtx.currentTime);
+      }
+    }
+
+    function updateAmbientUI() {
+      const dot = document.getElementById('soundPlayingDot');
+      const switchBtn = document.getElementById('ambientSwitchBtn');
+      if (dot) dot.classList.toggle('hidden', !isAmbientPlaying);
+      if (switchBtn) {
+        if (isAmbientPlaying) {
+          switchBtn.innerText = 'روشن (در حال پخش)';
+          switchBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition bg-teal-500 text-white';
+        } else {
+          switchBtn.innerText = 'خاموش';
+          switchBtn.className = 'px-4 py-1.5 rounded-xl text-xs font-bold transition bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
+        }
+      }
+    }
+
+    /* ==========================================
+       3. GAMIFICATION & XP SYSTEM
+    ========================================== */
+    const LEVEL_TITLES = [
+      'جوینده دانش',
+      'دانشجوی کوشا',
+      'پژوهشگر ساعی',
+      'قهرمان تمرکز عمیق',
+      'استاد یادگیری پویا',
+      'نابغه دانایی',
+      'دانشمند برتر'
+    ];
+
+    function awardXP(amount, reason = '') {
+      const oldLevel = appState.user.level;
+      appState.user.xp += amount;
+      
+      // Calculate level (150 XP per level)
+      appState.user.level = Math.floor(appState.user.xp / 150) + 1;
+      
+      saveState();
+      updateGamificationHeader();
+
+      showToast(`+${toPersianDigits(amount)} امتیاز تجربه (XP) کسب کردید! ${reason}`);
+
+      if (appState.user.level > oldLevel) {
+        triggerLevelUpCelebration(appState.user.level);
+      }
+    }
+
+    function triggerLevelUpCelebration(newLevel) {
+      playSound('complete');
+      if (window.confetti) {
+        confetti({
+          particleCount: 100,
+          spread: 80,
+          origin: { y: 0.6 }
+        });
+      }
+      const title = LEVEL_TITLES[Math.min(newLevel - 1, LEVEL_TITLES.length - 1)];
+      showToast(`🎉 تبریک! شما به سطح ${toPersianDigits(newLevel)} (${title}) ارتقا یافتید!`);
+    }
+
+    function checkStreak() {
+      const today = new Date().toISOString().split('T')[0];
+      const last = appState.user.lastStudyDate;
+
+      if (!last) {
+        appState.user.streak = 1;
+        appState.user.lastStudyDate = today;
+      } else if (last !== today) {
+        const lastDate = new Date(last);
+        const currDate = new Date(today);
+        const diffDays = Math.round((currDate - lastDate) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) {
+          appState.user.streak += 1;
+          appState.user.lastStudyDate = today;
+        } else if (diffDays > 1) {
+          appState.user.streak = 1;
+          appState.user.lastStudyDate = today;
+        }
+      }
+      saveState();
+      updateGamificationHeader();
+    }
+
+    function updateGamificationHeader() {
+      const xp = appState.user.xp;
+      const level = appState.user.level;
+      const streak = appState.user.streak;
+      
+      const currentLevelBaseXP = (level - 1) * 150;
+      const xpInCurrentLevel = xp - currentLevelBaseXP;
+      const progressPercent = Math.min(100, Math.round((xpInCurrentLevel / 150) * 100));
+
+      const title = LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
+
+      // Desktop Elements
+      const streakEl = document.getElementById('streakCount');
+      const levelBadge = document.getElementById('userLevelBadge');
+      const xpText = document.getElementById('userXpText');
+      const xpBar = document.getElementById('userXpBar');
+
+      if (streakEl) streakEl.innerText = toPersianDigits(streak);
+      if (levelBadge) levelBadge.innerText = `سطح ${toPersianDigits(level)} • ${title}`;
+      if (xpText) xpText.innerText = `${toPersianDigits(xpInCurrentLevel)} / ${toPersianDigits(150)} XP`;
+      if (xpBar) xpBar.style.width = `${progressPercent}%`;
+
+      // Mobile Elements
+      const mStreak = document.getElementById('mobileStreakCount');
+      const mLevel = document.getElementById('mobileLevelBadge');
+      const mXpBar = document.getElementById('mobileXpBar');
+      if (mStreak) mStreak.innerText = toPersianDigits(streak);
+      if (mLevel) mLevel.innerText = `سطح ${toPersianDigits(level)}`;
+      if (mXpBar) mXpBar.style.width = `${progressPercent}%`;
+    }
+
+    /* ==========================================
+       4. NAVIGATION & TABS
+    ========================================== */
+    let currentTab = 'tasks';
+
+    function switchTab(tabId) {
+      currentTab = tabId;
+      
+      // Update Buttons
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('active', 'bg-teal-500/15', 'text-teal-600', 'dark:text-teal-400', 'border', 'border-teal-500/30');
+        btn.classList.add('text-slate-500', 'dark:text-slate-400');
+      });
+      const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('active', 'bg-teal-500/15', 'text-teal-600', 'dark:text-teal-400', 'border', 'border-teal-500/30');
+        activeBtn.classList.remove('text-slate-500', 'dark:text-slate-400');
+      }
+
+      // Update Panes
+      document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.add('hidden');
+      });
+      const activePane = document.getElementById(`tab-content-${tabId}`);
+      if (activePane) {
+        activePane.classList.remove('hidden');
+      }
+
+      // Hide / Show Floating Timer Bar
+      updateFloatingTimerBar();
+
+      // Refresh specific tab contents
+      if (tabId === 'tasks') {
+        renderTasks();
+      } else if (tabId === 'spaced') {
+        renderSpacedRepetitionDeck();
+      } else if (tabId === 'exams') {
+        renderExams();
+      } else if (tabId === 'analytics') {
+        renderAnalytics();
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    /* ==========================================
+       5. TASK MANAGEMENT (List & Kanban Views)
+    ========================================== */
+    let activeTaskView = 'list'; // 'list' or 'kanban'
+    let currentQuickFilter = 'all';
+
+    function setTaskView(view) {
+      activeTaskView = view;
+      const btnList = document.getElementById('viewBtnList');
+      const btnKanban = document.getElementById('viewBtnKanban');
+      const listView = document.getElementById('tasksListView');
+      const kanbanView = document.getElementById('tasksKanbanView');
+      const quickPills = document.getElementById('quickFilterPills');
+
+      if (view === 'list') {
+        btnList.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-teal-500 text-white shadow-sm';
+        btnKanban.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200';
+        listView.classList.remove('hidden');
+        kanbanView.classList.add('hidden');
+        if (quickPills) quickPills.classList.remove('hidden');
+      } else {
+        btnKanban.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-teal-500 text-white shadow-sm';
+        btnList.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200';
+        kanbanView.classList.remove('hidden');
+        listView.classList.add('hidden');
+        if (quickPills) quickPills.classList.add('hidden');
+      }
+      renderTasks();
+    }
+
+    function setQuickFilter(filter) {
+      currentQuickFilter = filter;
+      document.querySelectorAll('.quick-pill').forEach(pill => {
+        pill.className = 'quick-pill px-3 py-1 rounded-lg text-xs font-semibold transition text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/50 dark:bg-slate-800/40';
+      });
+      event.target.closest('.quick-pill').className = 'quick-pill px-3 py-1 rounded-lg text-xs font-semibold transition active-pill bg-teal-500/20 text-teal-600 dark:text-teal-300 border border-teal-500/40';
+      renderTasks();
+    }
+
+    function getSubject(subjectId) {
+      return appState.subjects.find(s => s.id === subjectId) || { name: 'درس عمومی', color: '#14b8a6' };
+    }
+
+    function renderTasks() {
+      populateSubjectDropdowns();
+
+      const search = (document.getElementById('taskSearchInput')?.value || '').trim().toLowerCase();
+      const subjectFilter = document.getElementById('taskSubjectFilter')?.value || 'all';
+      const priorityFilter = document.getElementById('taskPriorityFilter')?.value || 'all';
+      const sortBy = document.getElementById('taskSortBy')?.value || 'deadline';
+
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      // Filter tasks
+      let filtered = appState.tasks.filter(t => {
+        if (search) {
+          const matchTitle = t.title.toLowerCase().includes(search);
+          const matchNotes = (t.notes || '').toLowerCase().includes(search);
+          const subj = getSubject(t.subjectId);
+          const matchSubj = subj.name.toLowerCase().includes(search);
+          if (!matchTitle && !matchNotes && !matchSubj) return false;
+        }
+
+        if (subjectFilter !== 'all' && t.subjectId !== subjectFilter) return false;
+        if (priorityFilter !== 'all' && t.priority !== priorityFilter) return false;
+
+        if (currentQuickFilter === 'today') {
+          if (!t.deadline || !t.deadline.startsWith(todayStr)) return false;
+        } else if (currentQuickFilter === 'upcoming') {
+          if (!t.deadline || t.deadline.slice(0, 10) <= todayStr) return false;
+        } else if (currentQuickFilter === 'overdue') {
+          if (!t.deadline || t.deadline.slice(0, 10) >= todayStr || t.status === 'mastered') return false;
+        } else if (currentQuickFilter === 'spaced') {
+          if (!t.spacedRepetition || !t.spacedRepetition.enabled) return false;
+        }
+
+        return true;
+      });
+
+      // Sort tasks
+      filtered.sort((a, b) => {
+        if (sortBy === 'deadline') {
+          if (!a.deadline) return 1;
+          if (!b.deadline) return -1;
+          return new Date(a.deadline) - new Date(b.deadline);
+        } else if (sortBy === 'priority') {
+          const pOrder = { high: 1, medium: 2, low: 3 };
+          return pOrder[a.priority] - pOrder[b.priority];
+        } else if (sortBy === 'time') {
+          return (b.estimatedMinutes || 0) - (a.estimatedMinutes || 0);
+        } else if (sortBy === 'title') {
+          return a.title.localeCompare(b.title, 'fa');
+        }
+        return 0;
+      });
+
+      updateTaskCounters();
+
+      if (activeTaskView === 'list') {
+        renderListView(filtered);
+      } else {
+        renderKanbanView(filtered);
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function updateTaskCounters() {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const countAll = appState.tasks.length;
+      const countToday = appState.tasks.filter(t => t.deadline && t.deadline.startsWith(todayStr)).length;
+      const countUpcoming = appState.tasks.filter(t => t.deadline && t.deadline.slice(0, 10) > todayStr).length;
+      const countOverdue = appState.tasks.filter(t => t.deadline && t.deadline.slice(0, 10) < todayStr && t.status !== 'mastered').length;
+      const countSpaced = appState.tasks.filter(t => t.spacedRepetition && t.spacedRepetition.enabled).length;
+
+      document.getElementById('count-all').innerText = toPersianDigits(countAll);
+      document.getElementById('count-today').innerText = toPersianDigits(countToday);
+      document.getElementById('count-upcoming').innerText = toPersianDigits(countUpcoming);
+      document.getElementById('count-overdue').innerText = toPersianDigits(countOverdue);
+      document.getElementById('count-spaced').innerText = toPersianDigits(countSpaced);
+
+      const navCountBadge = document.getElementById('badgeTasksCount');
+      if (navCountBadge) navCountBadge.innerText = toPersianDigits(countAll);
+    }
+
+    function renderListView(tasks) {
+      const container = document.getElementById('taskListContainer');
+      if (!container) return;
+
+      if (tasks.length === 0) {
+        container.innerHTML = `
+          <div class="glass-card rounded-2xl p-12 text-center text-slate-400">
+            <i data-lucide="check-circle" class="w-12 h-12 mx-auto mb-3 text-slate-400 dark:text-slate-600"></i>
+            <p class="text-sm font-bold text-slate-700 dark:text-slate-300">هیچ تکلیفی با این مشخصات یافت نشد!</p>
+            <p class="text-xs text-slate-500 mt-1">می‌توانید با دکمه «تکلیف جدید» یک برنامه مطالعاتی اضافه کنید.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = tasks.map(task => {
+        const subj = getSubject(task.subjectId);
+        const subtasksTotal = (task.subtasks || []).length;
+        const subtasksDone = (task.subtasks || []).filter(s => s.done).length;
+        const subtaskPercent = subtasksTotal > 0 ? Math.round((subtasksDone / subtasksTotal) * 100) : 0;
+
+        const isOverdue = task.deadline && new Date(task.deadline) < new Date() && task.status !== 'mastered';
+        
+        const priorityLabels = {
+          high: '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30">فوری</span>',
+          medium: '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30">متوسط</span>',
+          low: '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">عادی</span>'
+        };
+
+        const statusColors = {
+          todo: 'border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300',
+          studying: 'border-teal-500/40 bg-teal-500/10 text-teal-700 dark:text-teal-300',
+          review: 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+          mastered: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+        };
+
+        return `
+          <div class="glass-card rounded-2xl p-4 sm:p-5 transition hover:border-slate-400 dark:hover:border-slate-600/80 group">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              
+              <!-- Left/Main Info -->
+              <div class="flex items-start gap-3 flex-1 overflow-hidden">
+                <!-- Status Toggle Checkbox -->
+                <button onclick="toggleTaskStatusCompletion('${task.id}')" class="mt-1 w-6 h-6 rounded-lg flex items-center justify-center border transition flex-shrink-0 ${task.status === 'mastered' ? 'bg-emerald-500 border-emerald-400 text-white' : 'border-slate-400 dark:border-slate-600 hover:border-teal-400 text-transparent'}">
+                  <i data-lucide="check" class="w-4 h-4"></i>
+                </button>
+
+                <div class="space-y-1.5 flex-1 min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <!-- Subject Badge -->
+                    <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold" style="background-color: ${subj.color}25; color: ${subj.color}; border: 1px solid ${subj.color}40">
+                      ${subj.name}
+                    </span>
+                    <!-- Priority -->
+                    ${priorityLabels[task.priority]}
+                    <!-- Spaced Repetition Indicator -->
+                    ${task.spacedRepetition && task.spacedRepetition.enabled ? `
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/20 text-teal-700 dark:text-teal-300 border border-teal-500/30 flex items-center gap-1">
+                        <i data-lucide="repeat" class="w-2.5 h-2.5"></i>
+                        مرور مرحله ${toPersianDigits(task.spacedRepetition.stage || 1)}
+                      </span>
+                    ` : ''}
+                  </div>
+
+                  <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 group-hover:text-teal-500 dark:group-hover:text-teal-400 transition truncate ${task.status === 'mastered' ? 'line-through opacity-70' : ''}">
+                    ${task.title}
+                  </h3>
+
+                  <!-- Metadata Bar: Deadline, Time, Subtasks -->
+                  <div class="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+                    ${task.deadline ? `
+                      <span class="flex items-center gap-1 ${isOverdue ? 'text-rose-500 font-bold' : ''}">
+                        <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                        <span>${isOverdue ? 'تاخیر: ' : 'موعد: '}${formatPersianDateTime(task.deadline)}</span>
+                      </span>
+                    ` : ''}
+
+                    <span class="flex items-center gap-1">
+                      <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                      <span>مطالعه شده: ${toPersianDigits(task.actualMinutes || 0)} از ${toPersianDigits(task.estimatedMinutes || 60)} دقیقه</span>
+                    </span>
+
+                    ${subtasksTotal > 0 ? `
+                      <span class="flex items-center gap-1">
+                        <i data-lucide="list-checks" class="w-3.5 h-3.5"></i>
+                        <span>${toPersianDigits(subtasksDone)} از ${toPersianDigits(subtasksTotal)} ریزتکلیف</span>
+                      </span>
+                    ` : ''}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Actions: Focus, Status Dropdown, Edit, Delete -->
+              <div class="flex items-center gap-2 self-end lg:self-center flex-shrink-0">
+                
+                <!-- Start Focus Button -->
+                <button onclick="startFocusOnTask('${task.id}')" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-teal-500/20 hover:bg-teal-500 text-teal-700 dark:text-teal-300 hover:text-white border border-teal-500/40 flex items-center gap-1.5 transition shadow-sm" title="انتقال به اتاق تمرکز و پومودورو">
+                  <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                  <span>شروع تمرکز</span>
+                </button>
+
+                <!-- Status Selector -->
+                <select onchange="updateTaskStatus('${task.id}', this.value)" class="glass-input px-2.5 py-1.5 rounded-xl text-xs font-semibold ${statusColors[task.status]}">
+                  <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>برای مطالعه</option>
+                  <option value="studying" ${task.status === 'studying' ? 'selected' : ''}>در حال مطالعه</option>
+                  <option value="review" ${task.status === 'review' ? 'selected' : ''}>نیاز به مرور</option>
+                  <option value="mastered" ${task.status === 'mastered' ? 'selected' : ''}>تسلط کامل</option>
+                </select>
+
+                <!-- Edit Button -->
+                <button onclick="openTaskModalForEdit('${task.id}')" class="p-2 rounded-xl bg-slate-200 dark:bg-slate-800/60 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition" title="ویرایش">
+                  <i data-lucide="edit-3" class="w-4 h-4"></i>
+                </button>
+
+                <!-- Delete Button -->
+                <button onclick="deleteTask('${task.id}')" class="p-2 rounded-xl bg-slate-200 dark:bg-slate-800/60 hover:bg-rose-500/20 text-slate-500 hover:text-rose-500 transition" title="حذف">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+
+              </div>
+
+            </div>
+
+            <!-- Subtasks Progress Bar & Checklist Section -->
+            ${subtasksTotal > 0 ? `
+              <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800/60">
+                <div class="flex items-center justify-between text-xs mb-1.5">
+                  <span class="text-slate-500 dark:text-slate-400 font-medium">پیشرفت چک‌لیست:</span>
+                  <span class="text-teal-600 dark:text-teal-400 font-mono font-bold">${toPersianDigits(subtaskPercent)}%</span>
+                </div>
+                <div class="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden mb-2">
+                  <div class="bg-teal-500 dark:bg-teal-400 h-full rounded-full transition-all duration-300" style="width: ${subtaskPercent}%"></div>
+                </div>
+
+                <!-- Subtasks items -->
+                <div class="space-y-1.5 pl-2">
+                  ${task.subtasks.map(st => `
+                    <div class="flex items-center justify-between text-xs py-1 px-2 rounded-lg bg-slate-100 dark:bg-slate-800/30 hover:bg-slate-200 dark:hover:bg-slate-800/60 transition">
+                      <label class="flex items-center gap-2 cursor-pointer select-none flex-1 truncate">
+                        <input type="checkbox" ${st.done ? 'checked' : ''} onchange="toggleSubtask('${task.id}', '${st.id}')" class="rounded text-teal-500 focus:ring-teal-400">
+                        <span class="${st.done ? 'line-through text-slate-400' : 'text-slate-700 dark:text-slate-300'}">${st.text}</span>
+                      </label>
+                      <button onclick="deleteSubtask('${task.id}', '${st.id}')" class="text-slate-400 hover:text-rose-500 p-1 opacity-0 group-hover:opacity-100 transition">
+                        <i data-lucide="x" class="w-3 h-3"></i>
+                      </button>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Quick Notes preview if present -->
+            ${task.notes ? `
+              <div class="mt-2.5 text-xs text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-900/40 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/50 flex items-start gap-2">
+                <i data-lucide="file-text" class="w-3.5 h-3.5 text-teal-500 dark:text-teal-400 flex-shrink-0 mt-0.5"></i>
+                <p class="leading-relaxed whitespace-pre-line">${task.notes}</p>
+              </div>
+            ` : ''}
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    /* Kanban Drag & Drop and Rendering */
+    let draggedTaskId = null;
+
+    function renderKanbanView(tasks) {
+      const columns = ['todo', 'studying', 'review', 'mastered'];
+      columns.forEach(col => {
+        const colContainer = document.getElementById(`kanban-${col}`);
+        const colCount = document.getElementById(`kanbanCount-${col}`);
+        if (!colContainer) return;
+
+        const colTasks = tasks.filter(t => t.status === col);
+        if (colCount) colCount.innerText = toPersianDigits(colTasks.length);
+
+        if (colTasks.length === 0) {
+          colContainer.innerHTML = `
+            <div class="h-32 border border-dashed border-slate-300 dark:border-slate-800/80 rounded-xl flex items-center justify-center text-xs text-slate-400">
+              بدون تکلیف
+            </div>
+          `;
+          return;
+        }
+
+        colContainer.innerHTML = colTasks.map(task => {
+          const subj = getSubject(task.subjectId);
+          return `
+            <div draggable="true" ondragstart="handleDragStart(event, '${task.id}')" ondragend="handleDragEnd(event)" class="glass-card rounded-xl p-3.5 border border-slate-200 dark:border-slate-700/60 hover:border-teal-500/50 transition cursor-grab active:cursor-grabbing space-y-2.5 shadow-sm">
+              <div class="flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold" style="background-color: ${subj.color}25; color: ${subj.color}">
+                  ${subj.name}
+                </span>
+                <button onclick="startFocusOnTask('${task.id}')" class="p-1 rounded-md text-teal-600 dark:text-teal-400 hover:bg-teal-500/20" title="تمرکز روی این درس">
+                  <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+
+              <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 leading-snug">
+                ${task.title}
+              </h4>
+
+              <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200 dark:border-slate-800/60">
+                <span>⏱️ ${toPersianDigits(task.estimatedMinutes || 60)} دقیقه</span>
+                <button onclick="openTaskModalForEdit('${task.id}')" class="hover:text-teal-500">
+                  <i data-lucide="edit-2" class="w-3 h-3"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      });
+    }
+
+    function handleDragStart(e, taskId) {
+      draggedTaskId = taskId;
+      e.dataTransfer.setData('text/plain', taskId);
+      e.target.classList.add('dragging');
+    }
+
+    function handleDragEnd(e) {
+      e.target.classList.remove('dragging');
+      document.querySelectorAll('.kanban-drop-target').forEach(el => el.classList.remove('kanban-drop-target'));
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.currentTarget.classList.add('kanban-drop-target');
+    }
+
+    function handleDragLeave(e) {
+      e.currentTarget.classList.remove('kanban-drop-target');
+    }
+
+    function handleDrop(e, targetStatus) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('kanban-drop-target');
+      if (!draggedTaskId) return;
+
+      updateTaskStatus(draggedTaskId, targetStatus);
+      draggedTaskId = null;
+    }
+
+    function updateTaskStatus(taskId, newStatus) {
+      const task = appState.tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      const oldStatus = task.status;
+      task.status = newStatus;
+
+      if (newStatus === 'mastered' && oldStatus !== 'mastered') {
+        awardXP(50, `برای تسلط بر «${task.title}»`);
+        if (task.spacedRepetition && task.spacedRepetition.enabled) {
+          openSpacedResultModal(task);
+        }
+      }
+
+      saveState();
+      renderTasks();
+      if (currentTab === 'analytics') renderAnalytics();
+      if (currentTab === 'spaced') renderSpacedRepetitionDeck();
+    }
+
+    function toggleTaskStatusCompletion(taskId) {
+      const task = appState.tasks.find(t => t.id === taskId);
+      if (!task) return;
+      if (task.status === 'mastered') {
+        task.status = 'todo';
+      } else {
+        task.status = 'mastered';
+        awardXP(50, `تکمیل تکلیف «${task.title}»`);
+        if (task.spacedRepetition && task.spacedRepetition.enabled) {
+          openSpacedResultModal(task);
+        }
+      }
+      saveState();
+      renderTasks();
+    }
+
+    function toggleSubtask(taskId, subtaskId) {
+      const task = appState.tasks.find(t => t.id === taskId);
+      if (!task || !task.subtasks) return;
+      const st = task.subtasks.find(s => s.id === subtaskId);
+      if (!st) return;
+
+      st.done = !st.done;
+      if (st.done) {
+        awardXP(10, 'تکمیل ریزتکلیف');
+      }
+      saveState();
+      renderTasks();
+    }
+
+    function deleteSubtask(taskId, subtaskId) {
+      const task = appState.tasks.find(t => t.id === taskId);
+      if (!task || !task.subtasks) return;
+      task.subtasks = task.subtasks.filter(s => s.id !== subtaskId);
+      saveState();
+      renderTasks();
+    }
+
+    function deleteTask(taskId) {
+      if (!confirm('آیا از حذف این تکلیف اطمینان دارید؟')) return;
+      appState.tasks = appState.tasks.filter(t => t.id !== taskId);
+      
+      if (activeTimerTask && activeTimerTask.id === taskId) {
+        unlinkTaskFromTimer();
+      }
+
+      saveState();
+      renderTasks();
+      showToast('تکلیف با موفقیت حذف شد');
+    }
+
+    /* Modal Subtasks temporary state */
+    let tempModalSubtasks = [];
+
+    function openTaskModal(prefillStatus = 'todo') {
+      document.getElementById('taskFormId').value = '';
+      document.getElementById('taskModalTitle').innerHTML = '<i data-lucide="file-plus" class="w-5 h-5 text-teal-500 dark:text-teal-400"></i><span>افزودن تکلیف و مبحث جدید</span>';
+      document.getElementById('taskFormTitle').value = '';
+      document.getElementById('taskFormPriority').value = 'medium';
+      document.getElementById('taskFormDeadline').value = '';
+      document.getElementById('taskFormEstimatedTime').value = '60';
+      document.getElementById('taskFormStatus').value = prefillStatus;
+      document.getElementById('taskFormSpaced').checked = true;
+      document.getElementById('taskFormNotes').value = '';
+      
+      tempModalSubtasks = [];
+      renderModalSubtasks();
+      populateSubjectDropdowns();
+
+      document.getElementById('taskModal').classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function openTaskModalForEdit(taskId) {
+      const task = appState.tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      document.getElementById('taskFormId').value = task.id;
+      document.getElementById('taskModalTitle').innerHTML = '<i data-lucide="edit-3" class="w-5 h-5 text-teal-500 dark:text-teal-400"></i><span>ویرایش تکلیف</span>';
+      document.getElementById('taskFormTitle').value = task.title;
+      populateSubjectDropdowns();
+      document.getElementById('taskFormSubject').value = task.subjectId;
+      document.getElementById('taskFormPriority').value = task.priority;
+      document.getElementById('taskFormDeadline').value = task.deadline || '';
+      document.getElementById('taskFormEstimatedTime').value = task.estimatedMinutes || 60;
+      document.getElementById('taskFormStatus').value = task.status;
+      document.getElementById('taskFormSpaced').checked = !!(task.spacedRepetition && task.spacedRepetition.enabled);
+      document.getElementById('taskFormNotes').value = task.notes || '';
+
+      tempModalSubtasks = JSON.parse(JSON.stringify(task.subtasks || []));
+      renderModalSubtasks();
+
+      document.getElementById('taskModal').classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeTaskModal() {
+      document.getElementById('taskModal').classList.add('hidden');
+    }
+
+    function addModalSubtask() {
+      const input = document.getElementById('modalSubtaskInput');
+      const text = (input.value || '').trim();
+      if (!text) return;
+      tempModalSubtasks.push({
+        id: 'st_' + Date.now(),
+        text: text,
+        done: false
+      });
+      input.value = '';
+      renderModalSubtasks();
+    }
+
+    function removeModalSubtask(id) {
+      tempModalSubtasks = tempModalSubtasks.filter(s => s.id !== id);
+      renderModalSubtasks();
+    }
+
+    function renderModalSubtasks() {
+      const list = document.getElementById('modalSubtasksList');
+      if (!list) return;
+      if (tempModalSubtasks.length === 0) {
+        list.innerHTML = '<span class="text-[11px] text-slate-400 italic block py-1">هیچ ریزتکلیفی اضافه نشده است.</span>';
+        return;
+      }
+      list.innerHTML = tempModalSubtasks.map(st => `
+        <div class="flex items-center justify-between bg-slate-100 dark:bg-slate-800/50 p-2 rounded-xl text-xs">
+          <span class="text-slate-700 dark:text-slate-300 truncate">${st.text}</span>
+          <button type="button" onclick="removeModalSubtask('${st.id}')" class="text-rose-500 hover:text-rose-600 p-0.5">
+            <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      `).join('');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function handleTaskFormSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('taskFormId').value;
+      const title = document.getElementById('taskFormTitle').value.trim();
+      const subjectId = document.getElementById('taskFormSubject').value;
+      const priority = document.getElementById('taskFormPriority').value;
+      const deadline = document.getElementById('taskFormDeadline').value;
+      const estimatedMinutes = parseInt(document.getElementById('taskFormEstimatedTime').value) || 60;
+      const status = document.getElementById('taskFormStatus').value;
+      const spacedEnabled = document.getElementById('taskFormSpaced').checked;
+      const notes = document.getElementById('taskFormNotes').value.trim();
+
+      if (id) {
+        const task = appState.tasks.find(t => t.id === id);
+        if (task) {
+          task.title = title;
+          task.subjectId = subjectId;
+          task.priority = priority;
+          task.deadline = deadline;
+          task.estimatedMinutes = estimatedMinutes;
+          task.status = status;
+          task.notes = notes;
+          task.subtasks = tempModalSubtasks;
+          if (!task.spacedRepetition) {
+            task.spacedRepetition = { enabled: spacedEnabled, stage: 1, intervalDays: 1, nextReview: null, lastReviewed: null };
+          } else {
+            task.spacedRepetition.enabled = spacedEnabled;
+          }
+        }
+        showToast('تکلیف با موفقیت بروزرسانی شد');
+      } else {
+        const newTask = {
+          id: 'task_' + Date.now(),
+          title,
+          subjectId,
+          priority,
+          deadline,
+          estimatedMinutes,
+          actualMinutes: 0,
+          status,
+          notes,
+          subtasks: tempModalSubtasks,
+          spacedRepetition: {
+            enabled: spacedEnabled,
+            stage: 1,
+            intervalDays: 1,
+            nextReview: deadline ? deadline.slice(0, 10) : new Date().toISOString().slice(0, 10),
+            lastReviewed: null
+          },
+          createdAt: new Date().toISOString()
+        };
+        appState.tasks.unshift(newTask);
+        awardXP(20, 'افزودن تکلیف جدید');
+      }
+
+      saveState();
+      closeTaskModal();
+      renderTasks();
+      if (currentTab === 'spaced') renderSpacedRepetitionDeck();
+    }
+
+    /* ==========================================
+       6. SUBJECTS MANAGEMENT
+    ========================================== */
+    function populateSubjectDropdowns() {
+      const filters = ['taskSubjectFilter', 'taskFormSubject', 'examFormSubject'];
+      filters.forEach(dropdownId => {
+        const el = document.getElementById(dropdownId);
+        if (!el) return;
+        const currentVal = el.value;
+        
+        let html = '';
+        if (dropdownId === 'taskSubjectFilter') {
+          html += '<option value="all">تمام دروس و مباحث</option>';
+        }
+
+        appState.subjects.forEach(sub => {
+          html += `<option value="${sub.id}">${sub.name}</option>`;
+        });
+
+        el.innerHTML = html;
+        if (currentVal) el.value = currentVal;
+      });
+    }
+
+    function openSubjectModal() {
+      renderSubjectListModal();
+      document.getElementById('subjectModal').classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeSubjectModal() {
+      document.getElementById('subjectModal').classList.add('hidden');
+    }
+
+    function renderSubjectListModal() {
+      const container = document.getElementById('subjectListContainer');
+      if (!container) return;
+
+      container.innerHTML = appState.subjects.map(s => `
+        <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
+          <div class="flex items-center gap-3">
+            <span class="w-4 h-4 rounded-full" style="background-color: ${s.color}"></span>
+            <span class="text-xs font-bold text-slate-800 dark:text-slate-200">${s.name}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-mono text-slate-500 dark:text-slate-400">${toPersianDigits(s.totalMinutes || 0)} دقیقه مطالعه</span>
+            <button onclick="deleteSubject('${s.id}')" class="text-slate-400 hover:text-rose-500 p-1">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function handleSubjectCreate(e) {
+      e.preventDefault();
+      const name = document.getElementById('newSubjectName').value.trim();
+      const color = document.getElementById('newSubjectColor').value;
+      if (!name) return;
+
+      appState.subjects.push({
+        id: 'subj_' + Date.now(),
+        name,
+        color,
+        totalMinutes: 0
+      });
+
+      document.getElementById('newSubjectName').value = '';
+      saveState();
+      populateSubjectDropdowns();
+      renderSubjectListModal();
+      renderTasks();
+      showToast(`درس «${name}» اضافه شد`);
+    }
+
+    function deleteSubject(subjId) {
+      if (appState.subjects.length <= 1) {
+        showToast('حداقل یک درس باید در سامانه باقی بماند');
+        return;
+      }
+      if (!confirm('آیا از حذف این درس اطمینان دارید؟')) return;
+      appState.subjects = appState.subjects.filter(s => s.id !== subjId);
+      saveState();
+      populateSubjectDropdowns();
+      renderSubjectListModal();
+      renderTasks();
+    }
+
+    /* ==========================================
+       7. SPACED REPETITION ENGINE (1-3-7-30 Rule)
+    ========================================== */
+    const INTERVAL_RULES = {
+      1: 1,   // Stage 1 -> +1 day
+      2: 3,   // Stage 2 -> +3 days
+      3: 7,   // Stage 3 -> +7 days
+      4: 30,  // Stage 4 -> +30 days
+      5: 0    // Stage 5 -> Mastered
+    };
+
+    function renderSpacedRepetitionDeck() {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const spacedTasks = appState.tasks.filter(t => t.spacedRepetition && t.spacedRepetition.enabled);
+
+      const dueTasks = spacedTasks.filter(t => {
+        if (t.status === 'mastered') return false;
+        if (!t.spacedRepetition.nextReview) return true;
+        return t.spacedRepetition.nextReview <= todayStr;
+      });
+
+      const dueCountEl = document.getElementById('spacedDueCountBadge');
+      const navDueCount = document.getElementById('badgeDueReviewsCount');
+      if (dueCountEl) dueCountEl.innerText = `${toPersianDigits(dueTasks.length)} مورد`;
+      if (navDueCount) {
+        navDueCount.innerText = toPersianDigits(dueTasks.length);
+        navDueCount.classList.toggle('hidden', dueTasks.length === 0);
+      }
+
+      const dueContainer = document.getElementById('spacedDueContainer');
+      if (dueContainer) {
+        if (dueTasks.length === 0) {
+          dueContainer.innerHTML = `
+            <div class="text-center py-8 text-slate-400">
+              <i data-lucide="check-circle-2" class="w-10 h-10 mx-auto text-emerald-500 mb-2"></i>
+              <p class="text-xs font-bold text-slate-700 dark:text-slate-300">عالی است! هیچ مروری برای امروز عقب نیفتاده است.</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">برنامه مرورهای بعدی در ستون‌های زیر قابل مشاهده است.</p>
+            </div>
+          `;
+        } else {
+          dueContainer.innerHTML = dueTasks.map(t => {
+            const subj = getSubject(t.subjectId);
+            return `
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 gap-3">
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold" style="background-color: ${subj.color}25; color: ${subj.color}">
+                      ${subj.name}
+                    </span>
+                    <span class="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-full">
+                      نیاز به مرور مرحله ${toPersianDigits(t.spacedRepetition.stage || 1)}
+                    </span>
+                  </div>
+                  <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100">${t.title}</h4>
+                </div>
+
+                <div class="flex items-center gap-2 self-end sm:self-center">
+                  <button onclick="startFocusOnTask('${t.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-teal-500/20 text-teal-700 dark:text-teal-300 hover:bg-teal-500 hover:text-white transition flex items-center gap-1">
+                    <i data-lucide="timer" class="w-3.5 h-3.5"></i>
+                    <span>مطالعه با پومودورو</span>
+                  </button>
+                  <button onclick="openSpacedResultModalById('${t.id}')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 hover:bg-amber-400 transition shadow-sm">
+                    ثبت نتیجه مرور
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      // Render Stages 1 to 5
+      for (let stage = 1; stage <= 5; stage++) {
+        const stageTasks = spacedTasks.filter(t => (t.spacedRepetition.stage || 1) === stage);
+        const countEl = document.getElementById(`stageCount-${stage}`);
+        const listEl = document.getElementById(`stageList-${stage}`);
+        
+        if (countEl) countEl.innerText = toPersianDigits(stageTasks.length);
+        if (listEl) {
+          if (stageTasks.length === 0) {
+            listEl.innerHTML = '<span class="text-[11px] text-slate-400 italic block py-4 text-center">خالی</span>';
+          } else {
+            listEl.innerHTML = stageTasks.map(t => {
+              const subj = getSubject(t.subjectId);
+              return `
+                <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/40 text-xs space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[9px] font-bold px-1.5 py-0.2 rounded" style="color: ${subj.color}">${subj.name}</span>
+                    <button onclick="openSpacedResultModalById('${t.id}')" class="text-slate-400 hover:text-teal-500">
+                      <i data-lucide="check" class="w-3 h-3"></i>
+                    </button>
+                  </div>
+                  <h5 class="font-bold text-slate-800 dark:text-slate-200 truncate">${t.title}</h5>
+                  ${t.spacedRepetition.nextReview ? `
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400 block">مرور: ${toPersianDigits(t.spacedRepetition.nextReview)}</span>
+                  ` : ''}
+                </div>
+              `;
+            }).join('');
+          }
+        }
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    let activeReviewTask = null;
+
+    function openSpacedResultModalById(taskId) {
+      const task = appState.tasks.find(t => t.id === taskId);
+      if (task) openSpacedResultModal(task);
+    }
+
+    function openSpacedResultModal(task) {
+      activeReviewTask = task;
+      const modal = document.getElementById('spacedReviewModal');
+      const titleEl = document.getElementById('spacedModalTaskTitle');
+      const hint = document.getElementById('nextIntervalEasyHint');
+      
+      if (titleEl) titleEl.innerText = task.title;
+
+      const currentStage = task.spacedRepetition ? task.spacedRepetition.stage : 1;
+      const nextDays = INTERVAL_RULES[Math.min(currentStage + 1, 4)] || 3;
+      if (hint) hint.innerText = `+${toPersianDigits(nextDays)} روز`;
+
+      if (modal) modal.classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeSpacedModal() {
+      const modal = document.getElementById('spacedReviewModal');
+      if (modal) modal.classList.add('hidden');
+      activeReviewTask = null;
+    }
+
+    function logSpacedResult(outcome) {
+      if (!activeReviewTask) return;
+      const task = activeReviewTask;
+      if (!task.spacedRepetition) {
+        task.spacedRepetition = { enabled: true, stage: 1, intervalDays: 1, nextReview: null, lastReviewed: null };
+      }
+
+      let currentStage = task.spacedRepetition.stage || 1;
+      let nextStage = currentStage;
+      let intervalDays = 1;
+
+      if (outcome === 'easy') {
+        nextStage = Math.min(currentStage + 1, 5);
+        intervalDays = INTERVAL_RULES[nextStage] || 3;
+        awardXP(35, 'مرور موفق');
+      } else if (outcome === 'hard') {
+        nextStage = currentStage;
+        intervalDays = 1;
+        awardXP(15, 'تلاش در مرور');
+      } else if (outcome === 'forgot') {
+        nextStage = 1;
+        intervalDays = 1;
+        awardXP(10, 'مرور مجدد');
+      } else if (outcome === 'mastered') {
+        nextStage = 5;
+        intervalDays = 30;
+        task.status = 'mastered';
+        awardXP(60, 'تسلط دائم بر مبحث');
+      }
+
+      task.spacedRepetition.stage = nextStage;
+      task.spacedRepetition.intervalDays = intervalDays;
+      task.spacedRepetition.lastReviewed = new Date().toISOString();
+
+      const nextDate = new Date();
+      nextDate.setDate(nextDate.getDate() + intervalDays);
+      const nextDateStr = nextDate.toISOString().split('T')[0];
+      task.spacedRepetition.nextReview = nextDateStr;
+
+      // Option to duplicate / create separate scheduled review task
+      const shouldDuplicate = document.getElementById('autoCreateDuplicateReviewTask')?.checked;
+      if (shouldDuplicate && outcome !== 'mastered') {
+        const reviewTaskTitle = `مرور نوبت ${toPersianDigits(nextStage)}: ${task.title}`;
+        const alreadyExists = appState.tasks.some(t => t.title === reviewTaskTitle && t.status !== 'mastered');
+        if (!alreadyExists) {
+          appState.tasks.unshift({
+            id: 'task_rev_' + Date.now(),
+            title: reviewTaskTitle,
+            subjectId: task.subjectId,
+            priority: 'medium',
+            status: 'todo',
+            deadline: nextDateStr + 'T10:00',
+            estimatedMinutes: Math.max(20, Math.round((task.estimatedMinutes || 60) * 0.5)),
+            actualMinutes: 0,
+            notes: `مرور فاصله‌دار برنامه‌ریزی شده برای مبحث «${task.title}» طبق قانون ۱-۳-۷-۳۰.`,
+            subtasks: [
+              { id: 'st_r1', text: 'بازیابی ذهنی نکات کلیدی بدون نگاه به کتاب', done: false },
+              { id: 'st_r2', text: 'حل ۲ تست سنجشی جدید', done: false }
+            ],
+            spacedRepetition: {
+              enabled: true,
+              stage: nextStage,
+              intervalDays: intervalDays,
+              nextReview: nextDateStr,
+              lastReviewed: new Date().toISOString()
+            },
+            createdAt: new Date().toISOString()
+          });
+        }
+      }
+
+      saveState();
+      closeSpacedModal();
+      showToast(`مرور مبحث با موفقیت ثبت شد! مرحله بعدی: ${toPersianDigits(intervalDays)} روز دیگر`);
+      
+      if (currentTab === 'spaced') renderSpacedRepetitionDeck();
+      if (currentTab === 'tasks') renderTasks();
+    }
+
+    /* ==========================================
+       8. FOCUS TIMER (POMODORO & STOPWATCH)
+    ========================================== */
+    let timerInterval = null;
+    let timerRunning = false;
+    let timerMode = 'pomodoro_25';
+    let timerPhase = 'work';
+    let timerTotalSeconds = 25 * 60;
+    let timerRemainingSeconds = 25 * 60;
+    let timerElapsedWorkSeconds = 0;
+    let activeTimerTask = null;
+
+    function setTimerPreset(preset) {
+      if (timerRunning) {
+        if (!confirm('زمان‌سنج در حال اجراست. آیا مایلید مجدداً راه‌اندازی شود؟')) return;
+        pauseTimer();
+      }
+      timerMode = preset;
+      timerPhase = 'work';
+      timerElapsedWorkSeconds = 0;
+
+      const btns = {
+        'pomodoro_25': 'btnPreset25',
+        'pomodoro_50': 'btnPreset50',
+        'custom': 'btnPresetCustom',
+        'stopwatch': 'btnPresetStopwatch'
+      };
+      Object.keys(btns).forEach(k => {
+        const b = document.getElementById(btns[k]);
+        if (b) {
+          if (k === preset) {
+            b.className = 'timer-mode-btn flex-1 py-2 px-3 rounded-xl text-xs font-bold transition bg-teal-500 text-white shadow-md';
+          } else {
+            b.className = 'timer-mode-btn flex-1 py-2 px-3 rounded-xl text-xs font-bold transition text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200';
+          }
+        }
+      });
+
+      if (preset === 'pomodoro_25') {
+        timerTotalSeconds = 25 * 60;
+      } else if (preset === 'pomodoro_50') {
+        timerTotalSeconds = 50 * 60;
+      } else if (preset === 'custom') {
+        const workMin = parseInt(document.getElementById('customWorkInput')?.value) || 25;
+        timerTotalSeconds = workMin * 60;
+      } else if (preset === 'stopwatch') {
+        timerTotalSeconds = 0;
+      }
+
+      timerRemainingSeconds = timerTotalSeconds;
+      updateTimerDisplay();
+    }
+
+    function toggleTimer() {
+      if (timerRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    }
+
+    function startTimer() {
+      getAudioContext();
+      playSound('start');
+      timerRunning = true;
+      
+      const playIcon = document.getElementById('timerPlayIcon');
+      const playText = document.getElementById('timerPlayText');
+      if (playIcon) playIcon.setAttribute('data-lucide', 'pause');
+      if (playText) playText.innerText = 'توقف موقت';
+
+      timerInterval = setInterval(() => {
+        if (timerMode === 'stopwatch') {
+          timerRemainingSeconds += 1;
+          timerElapsedWorkSeconds += 1;
+        } else {
+          timerRemainingSeconds -= 1;
+          if (timerPhase === 'work') {
+            timerElapsedWorkSeconds += 1;
+          }
+
+          if (timerRemainingSeconds <= 0) {
+            handleTimerPhaseCompletion();
+          }
+        }
+        updateTimerDisplay();
+      }, 1000);
+
+      updateFloatingTimerBar();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function pauseTimer() {
+      timerRunning = false;
+      clearInterval(timerInterval);
+      timerInterval = null;
+
+      const playIcon = document.getElementById('timerPlayIcon');
+      const playText = document.getElementById('timerPlayText');
+      if (playIcon) playIcon.setAttribute('data-lucide', 'play');
+      if (playText) playText.innerText = 'ادامه تمرکز';
+
+      updateFloatingTimerBar();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      timerElapsedWorkSeconds = 0;
+      if (timerMode === 'pomodoro_25') {
+        timerRemainingSeconds = 25 * 60;
+        timerTotalSeconds = 25 * 60;
+      } else if (timerMode === 'pomodoro_50') {
+        timerRemainingSeconds = 50 * 60;
+        timerTotalSeconds = 50 * 60;
+      } else if (timerMode === 'custom') {
+        const workMin = parseInt(document.getElementById('customWorkInput')?.value) || 25;
+        timerRemainingSeconds = workMin * 60;
+        timerTotalSeconds = workMin * 60;
+      } else if (timerMode === 'stopwatch') {
+        timerRemainingSeconds = 0;
+        timerTotalSeconds = 0;
+      }
+      timerPhase = 'work';
+      updateTimerDisplay();
+    }
+
+    function handleTimerPhaseCompletion() {
+      pauseTimer();
+      playSound('complete');
+
+      if (timerPhase === 'work') {
+        const minutesStudied = Math.max(1, Math.round(timerTotalSeconds / 60));
+        logStudyTime(minutesStudied);
+        awardXP(30, 'اتمام جلسه تمرکز پومودورو');
+
+        timerPhase = 'break';
+        let breakMin = 5;
+        if (timerMode === 'pomodoro_50') breakMin = 10;
+        if (timerMode === 'custom') {
+          breakMin = parseInt(document.getElementById('customBreakInput')?.value) || 5;
+        }
+        timerTotalSeconds = breakMin * 60;
+        timerRemainingSeconds = timerTotalSeconds;
+
+        showToast('🎯 جلسه تمرکز به پایان رسید! زمان استراحت و تنفس عمیق است.');
+      } else {
+        timerPhase = 'work';
+        setTimerPreset(timerMode);
+        showToast('⏰ زمان استراحت به پایان رسید! آماده جلسه تمرکز بعدی باشید.');
+      }
+
+      updateTimerDisplay();
+    }
+
+    function manuallyLogSession() {
+      if (timerElapsedWorkSeconds < 60) {
+        showToast('برای ثبت زمان مطالعه حداقل باید ۱ دقیقه تمرکز داشته باشید.');
+        return;
+      }
+      const minutes = Math.round(timerElapsedWorkSeconds / 60);
+      logStudyTime(minutes);
+      awardXP(Math.max(10, Math.round(minutes * 1.2)), 'ثبت زمان مطالعه');
+      timerElapsedWorkSeconds = 0;
+      resetTimer();
+    }
+
+    function logStudyTime(minutes) {
+      if (minutes <= 0) return;
+
+      // 1. Task study minutes
+      if (activeTimerTask) {
+        const task = appState.tasks.find(t => t.id === activeTimerTask.id);
+        if (task) {
+          task.actualMinutes = (task.actualMinutes || 0) + minutes;
+        }
+      }
+
+      // 2. Subject study minutes
+      const subjId = activeTimerTask ? activeTimerTask.subjectId : (appState.subjects[0]?.id || null);
+      if (subjId) {
+        const subj = appState.subjects.find(s => s.id === subjId);
+        if (subj) {
+          subj.totalMinutes = (subj.totalMinutes || 0) + minutes;
+        }
+      }
+
+      // 3. User total & daily logs
+      appState.user.totalStudyMinutes += minutes;
+      appState.user.totalSessions += 1;
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const historyEntry = appState.dailyStudyHistory.find(h => h.date === todayStr);
+      if (historyEntry) {
+        historyEntry.minutes += minutes;
+      } else {
+        appState.dailyStudyHistory.push({ date: todayStr, minutes });
+      }
+
+      checkStreak();
+      saveState();
+      updateTimerDisplay();
+      if (currentTab === 'tasks') renderTasks();
+      if (currentTab === 'analytics') renderAnalytics();
+    }
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timerRemainingSeconds / 60);
+      const seconds = timerRemainingSeconds % 60;
+      const formatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+      const display = document.getElementById('timerDisplay');
+      if (display) display.innerText = formatted;
+
+      const phaseLabel = document.getElementById('timerPhaseLabel');
+      if (phaseLabel) {
+        if (timerMode === 'stopwatch') {
+          phaseLabel.innerText = 'کرنومتر آزاد';
+          phaseLabel.className = 'text-xs sm:text-sm font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 mb-1 px-3 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30';
+        } else if (timerPhase === 'work') {
+          phaseLabel.innerText = 'تمرکز عمیق';
+          phaseLabel.className = 'text-xs sm:text-sm font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 mb-1 px-3 py-0.5 rounded-full bg-teal-500/15 border border-teal-500/30';
+        } else {
+          phaseLabel.innerText = 'استراحت و ریکاوری';
+          phaseLabel.className = 'text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1 px-3 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30';
+        }
+      }
+
+      const ring = document.getElementById('timerProgressRing');
+      if (ring) {
+        const circumference = 276.46;
+        if (timerTotalSeconds > 0) {
+          const progress = timerRemainingSeconds / timerTotalSeconds;
+          const offset = circumference * (1 - progress);
+          ring.style.strokeDashoffset = offset;
+        } else {
+          ring.style.strokeDashoffset = 0;
+        }
+      }
+
+      const sessionsCounter = document.getElementById('timerSessionsCounter');
+      if (sessionsCounter) {
+        sessionsCounter.innerText = `جلسات ثبت شده: ${toPersianDigits(appState.user.totalSessions)}`;
+      }
+
+      const todayMinsEl = document.getElementById('todayTotalMinutes');
+      const todaySessionsEl = document.getElementById('todaySessionsCount');
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todayHistory = appState.dailyStudyHistory.find(h => h.date === todayStr);
+      if (todayMinsEl) todayMinsEl.innerText = toPersianDigits(todayHistory ? todayHistory.minutes : 0);
+      if (todaySessionsEl) todaySessionsEl.innerText = toPersianDigits(appState.user.totalSessions);
+
+      updateFloatingTimerBar();
+    }
+
+    function updateFloatingTimerBar() {
+      const bar = document.getElementById('floatingTimerBar');
+      const navBadge = document.getElementById('navTimerRunningBadge');
+      
+      if (navBadge) navBadge.classList.toggle('hidden', !timerRunning);
+
+      if (!bar) return;
+      if (timerRunning && currentTab !== 'focus') {
+        bar.classList.remove('hidden');
+        const floatDisplay = document.getElementById('floatingTimerDisplay');
+        const floatTitle = document.getElementById('floatingTaskTitle');
+        const minutes = Math.floor(timerRemainingSeconds / 60);
+        const seconds = timerRemainingSeconds % 60;
+        if (floatDisplay) floatDisplay.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        if (floatTitle) floatTitle.innerText = activeTimerTask ? activeTimerTask.title : 'مطالعه آزاد';
+      } else {
+        bar.classList.add('hidden');
+      }
+    }
+
+    function startFocusOnTask(taskId) {
+      const task = appState.tasks.find(t => t.id === taskId);
+      if (!task) return;
+      activeTimerTask = task;
+      updateLinkedTaskUI();
+      switchTab('focus');
+      setTimerPreset('pomodoro_25');
+      showToast(`تکلیف «${task.title}» بارگذاری شد. آماده شروع تمرکز!`);
+    }
+
+    function updateLinkedTaskUI() {
+      const titleEl = document.getElementById('timerLinkedTaskTitle');
+      const subjEl = document.getElementById('timerLinkedTaskSubject');
+      if (activeTimerTask) {
+        const subj = getSubject(activeTimerTask.subjectId);
+        if (titleEl) titleEl.innerText = activeTimerTask.title;
+        if (subjEl) subjEl.innerText = `${subj.name} • مطالعه شده: ${toPersianDigits(activeTimerTask.actualMinutes || 0)} دقیقه`;
+      } else {
+        if (titleEl) titleEl.innerText = 'هیچ تکلیفی انتخاب نشده';
+        if (subjEl) subjEl.innerText = 'مطالعه آزاد بدون تکلیف متصل';
+      }
+    }
+
+    function openSelectTaskForTimerModal() {
+      const list = document.getElementById('selectTaskModalList');
+      if (!list) return;
+
+      if (appState.tasks.length === 0) {
+        list.innerHTML = '<span class="text-xs text-slate-400 italic block py-4 text-center">هیچ تکلیفی برای انتخاب وجود ندارد.</span>';
+      } else {
+        list.innerHTML = appState.tasks.map(t => {
+          const subj = getSubject(t.subjectId);
+          return `
+            <div onclick="selectTaskForTimer('${t.id}')" class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/50 cursor-pointer transition flex items-center justify-between">
+              <div class="overflow-hidden">
+                <span class="text-[10px] font-bold" style="color: ${subj.color}">${subj.name}</span>
+                <h5 class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">${t.title}</h5>
+              </div>
+              <span class="text-[11px] text-teal-600 dark:text-teal-400 font-mono flex-shrink-0">انتخاب</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      document.getElementById('selectTaskModal').classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function selectTaskForTimer(taskId) {
+      const task = appState.tasks.find(t => t.id === taskId);
+      if (task) {
+        activeTimerTask = task;
+        updateLinkedTaskUI();
+      }
+      closeSelectTaskModal();
+    }
+
+    function unlinkTaskFromTimer() {
+      activeTimerTask = null;
+      updateLinkedTaskUI();
+      closeSelectTaskModal();
+    }
+
+    function closeSelectTaskModal() {
+      document.getElementById('selectTaskModal').classList.add('hidden');
+    }
+
+    function updateCustomTimeInputs() {
+      const workVal = document.getElementById('customWorkInput').value;
+      const breakVal = document.getElementById('customBreakInput').value;
+      document.getElementById('customWorkValue').innerText = toPersianDigits(workVal);
+      document.getElementById('customBreakValue').innerText = toPersianDigits(breakVal);
+    }
+
+    function applyCustomDuration() {
+      setTimerPreset('custom');
+      showToast('زمان سفارشی اعمال گردید.');
+    }
+
+    /* ==========================================
+       9. EXAM COUNTDOWN TRACKER
+    ========================================== */
+    function renderExams() {
+      const container = document.getElementById('examsGridContainer');
+      const badgeCount = document.getElementById('badgeExamsCount');
+      if (badgeCount) badgeCount.innerText = toPersianDigits(appState.exams.length);
+
+      if (!container) return;
+
+      if (appState.exams.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full glass-card rounded-3xl p-12 text-center text-slate-400">
+            <i data-lucide="calendar" class="w-12 h-12 mx-auto text-slate-400 dark:text-slate-600 mb-3"></i>
+            <p class="text-sm font-bold text-slate-700 dark:text-slate-300">هیچ آزمونی ثبت نشده است!</p>
+            <p class="text-xs text-slate-500 mt-1">با زدن دکمه «افزودن آزمون جدید» تاریخ کنکور یا امتحان‌های خود را مشخص کنید.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = appState.exams.map(exam => {
+        const subj = getSubject(exam.subjectId);
+        const timeDiff = new Date(exam.examDate) - new Date();
+        const isPast = timeDiff < 0;
+
+        const totalSec = Math.max(0, Math.floor(timeDiff / 1000));
+        const days = Math.floor(totalSec / 86400);
+        const hours = Math.floor((totalSec % 86400) / 3600);
+        const minutes = Math.floor((totalSec % 3600) / 60);
+        const seconds = totalSec % 60;
+
+        let urgencyBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/20 text-teal-700 dark:text-teal-300 border border-teal-500/30">فرصت مناسب</span>';
+        if (days <= 3 && !isPast) {
+          urgencyBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30 animate-pulse">زمان طلایی جمع‌بندی</span>';
+        } else if (days <= 14 && !isPast) {
+          urgencyBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">هشدار مرور</span>';
+        }
+
+        return `
+          <div class="glass-card rounded-3xl p-6 flex flex-col justify-between space-y-4 hover:border-teal-500/40 transition">
+            
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold" style="background-color: ${subj.color}25; color: ${subj.color}">
+                  ${subj.name}
+                </span>
+                ${urgencyBadge}
+              </div>
+
+              <h3 class="text-base font-extrabold text-slate-900 dark:text-slate-100 leading-snug">
+                ${exam.title}
+              </h3>
+
+              <!-- Live Countdown Display -->
+              ${!isPast ? `
+                <div class="grid grid-cols-4 gap-2 text-center pt-2">
+                  <div class="bg-slate-100 dark:bg-slate-800/60 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700/50">
+                    <span class="text-xl sm:text-2xl font-black text-teal-600 dark:text-teal-400 font-mono block">${toPersianDigits(days)}</span>
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">روز</span>
+                  </div>
+                  <div class="bg-slate-100 dark:bg-slate-800/60 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700/50">
+                    <span class="text-xl sm:text-2xl font-black text-teal-600 dark:text-teal-400 font-mono block">${toPersianDigits(hours.toString().padStart(2, '0'))}</span>
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">ساعت</span>
+                  </div>
+                  <div class="bg-slate-100 dark:bg-slate-800/60 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700/50">
+                    <span class="text-xl sm:text-2xl font-black text-teal-600 dark:text-teal-400 font-mono block">${toPersianDigits(minutes.toString().padStart(2, '0'))}</span>
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">دقیقه</span>
+                  </div>
+                  <div class="bg-slate-100 dark:bg-slate-800/60 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-700/50">
+                    <span class="text-xl sm:text-2xl font-black text-teal-600 dark:text-teal-400 font-mono block">${toPersianDigits(seconds.toString().padStart(2, '0'))}</span>
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">ثانیه</span>
+                  </div>
+                </div>
+              ` : `
+                <div class="p-3 rounded-2xl bg-slate-200/50 dark:bg-slate-800/40 text-center text-xs text-slate-500 dark:text-slate-400 font-bold">
+                  آزمون برگزار شده است
+                </div>
+              `}
+
+              <!-- Target & Date Details -->
+              <div class="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-200 dark:border-slate-800/60">
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400">تاریخ آزمون:</span>
+                  <span class="font-bold">${formatPersianDateTime(exam.examDate)}</span>
+                </div>
+                ${exam.targetScore ? `
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-400">نمره / رتبه هدف:</span>
+                    <span class="font-bold text-amber-600 dark:text-amber-400">${exam.targetScore}</span>
+                  </div>
+                ` : ''}
+              </div>
+
+              <!-- Interactive Readiness Slider -->
+              <div class="pt-2">
+                <div class="flex items-center justify-between text-xs mb-1">
+                  <span class="text-slate-500 dark:text-slate-400">میزان آمادگی فعلی:</span>
+                  <span id="readinessVal-${exam.id}" class="text-teal-600 dark:text-teal-400 font-mono font-bold">${toPersianDigits(exam.readiness || 50)}%</span>
+                </div>
+                <input type="range" min="0" max="100" value="${exam.readiness || 50}" oninput="updateExamReadiness('${exam.id}', this.value)" class="w-full">
+              </div>
+
+              ${exam.topics ? `
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/30 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700/40">
+                  <strong class="text-slate-700 dark:text-slate-300 block mb-0.5">سرفصل‌های آزمون:</strong>
+                  <span>${exam.topics}</span>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Card Actions -->
+            <div class="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800/60">
+              <button onclick="openExamModalForEdit('${exam.id}')" class="text-xs text-teal-600 dark:text-teal-400 hover:text-teal-500 font-bold flex items-center gap-1">
+                <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+                <span>ویرایش</span>
+              </button>
+              <button onclick="deleteExam('${exam.id}')" class="text-xs text-slate-400 hover:text-rose-500 flex items-center gap-1">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                <span>حذف</span>
+              </button>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function updateExamReadiness(examId, val) {
+      const exam = appState.exams.find(e => e.id === examId);
+      if (!exam) return;
+      exam.readiness = parseInt(val) || 0;
+      const label = document.getElementById(`readinessVal-${examId}`);
+      if (label) label.innerText = `${toPersianDigits(exam.readiness)}%`;
+      saveState();
+    }
+
+    setInterval(() => {
+      if (currentTab === 'exams') {
+        renderExams();
+      }
+    }, 1000);
+
+    function openExamModal() {
+      document.getElementById('examFormId').value = '';
+      document.getElementById('examModalTitle').innerHTML = '<i data-lucide="calendar-plus" class="w-5 h-5 text-teal-500 dark:text-teal-400"></i><span>افزودن آزمون جدید</span>';
+      document.getElementById('examFormTitle').value = '';
+      populateSubjectDropdowns();
+      document.getElementById('examFormDate').value = '';
+      document.getElementById('examFormTarget').value = '';
+      document.getElementById('examFormReadiness').value = '50';
+      document.getElementById('examReadinessLabel').innerText = '50%';
+      document.getElementById('examFormTopics').value = '';
+      document.getElementById('examFormNotes').value = '';
+
+      document.getElementById('examModal').classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function openExamModalForEdit(examId) {
+      const exam = appState.exams.find(e => e.id === examId);
+      if (!exam) return;
+
+      document.getElementById('examFormId').value = exam.id;
+      document.getElementById('examModalTitle').innerHTML = '<i data-lucide="edit-3" class="w-5 h-5 text-teal-500 dark:text-teal-400"></i><span>ویرایش آزمون</span>';
+      document.getElementById('examFormTitle').value = exam.title;
+      populateSubjectDropdowns();
+      document.getElementById('examFormSubject').value = exam.subjectId;
+      document.getElementById('examFormDate').value = exam.examDate;
+      document.getElementById('examFormTarget').value = exam.targetScore || '';
+      document.getElementById('examFormReadiness').value = exam.readiness || 50;
+      document.getElementById('examReadinessLabel').innerText = (exam.readiness || 50) + '%';
+      document.getElementById('examFormTopics').value = exam.topics || '';
+      document.getElementById('examFormNotes').value = exam.notes || '';
+
+      document.getElementById('examModal').classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeExamModal() {
+      document.getElementById('examModal').classList.add('hidden');
+    }
+
+    function handleExamFormSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('examFormId').value;
+      const title = document.getElementById('examFormTitle').value.trim();
+      const subjectId = document.getElementById('examFormSubject').value;
+      const examDate = document.getElementById('examFormDate').value;
+      const targetScore = document.getElementById('examFormTarget').value.trim();
+      const readiness = parseInt(document.getElementById('examFormReadiness').value) || 50;
+      const topics = document.getElementById('examFormTopics').value.trim();
+      const notes = document.getElementById('examFormNotes').value.trim();
+
+      if (id) {
+        const exam = appState.exams.find(e => e.id === id);
+        if (exam) {
+          exam.title = title;
+          exam.subjectId = subjectId;
+          exam.examDate = examDate;
+          exam.targetScore = targetScore;
+          exam.readiness = readiness;
+          exam.topics = topics;
+          exam.notes = notes;
+        }
+        showToast('آزمون با موفقیت بروزرسانی شد');
+      } else {
+        const newExam = {
+          id: 'exam_' + Date.now(),
+          title,
+          subjectId,
+          examDate,
+          targetScore,
+          readiness,
+          topics,
+          notes
+        };
+        appState.exams.push(newExam);
+        awardXP(25, 'ثبت آزمون جدید');
+      }
+
+      saveState();
+      closeExamModal();
+      renderExams();
+    }
+
+    function deleteExam(examId) {
+      if (!confirm('آیا از حذف این آزمون اطمینان دارید؟')) return;
+      appState.exams = appState.exams.filter(e => e.id !== examId);
+      saveState();
+      renderExams();
+      showToast('آزمون حذف شد');
+    }
+
+    /* ==========================================
+       10. ANALYTICS & CHART.JS INTEGRATION
+    ========================================== */
+    let weeklyBarChartInstance = null;
+    let subjectDoughnutChartInstance = null;
+
+    function renderAnalytics() {
+      // 1. Update KPI stats
+      const totalMins = appState.user.totalStudyMinutes || 0;
+      const hrs = Math.floor(totalMins / 60);
+      const mins = totalMins % 60;
+      const statTotalHours = document.getElementById('statTotalHours');
+      if (statTotalHours) {
+        statTotalHours.innerText = `${toPersianDigits(hrs)}:${mins.toString().padStart(2, '0')}`;
+      }
+
+      const completedCount = appState.tasks.filter(t => t.status === 'mastered').length;
+      const totalTasks = appState.tasks.length;
+      const compRate = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
+      
+      const statCompletedTasks = document.getElementById('statCompletedTasks');
+      const statCompletionRate = document.getElementById('statCompletionRate');
+      if (statCompletedTasks) statCompletedTasks.innerText = `${toPersianDigits(completedCount)} / ${toPersianDigits(totalTasks)}`;
+      if (statCompletionRate) statCompletionRate.innerText = `${toPersianDigits(compRate)}٪ نرخ تکمیل`;
+
+      const statTotalSessions = document.getElementById('statTotalSessions');
+      if (statTotalSessions) statTotalSessions.innerText = toPersianDigits(appState.user.totalSessions || 0);
+
+      const spacedActive = appState.tasks.filter(t => t.spacedRepetition && t.spacedRepetition.enabled).length;
+      const statSpacedCount = document.getElementById('statSpacedCount');
+      if (statSpacedCount) statSpacedCount.innerText = toPersianDigits(spacedActive);
+
+      // 2. Render 7-day Bar Chart
+      renderWeeklyBarChart();
+
+      // 3. Render Subject Doughnut Chart
+      renderSubjectDoughnutChart();
+
+      // 4. Smart study recommendations
+      generateSmartRecommendation();
+    }
+
+    function renderWeeklyBarChart() {
+      const canvas = document.getElementById('weeklyStudyBarChart');
+      if (!canvas) return;
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const textColor = isDark ? '#94a3b8' : '#475569';
+      const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.06)';
+
+      const labels = [];
+      const data = [];
+      for (let i = 6; i >= 0; i--) {
+        const dStr = getPastDateString(i);
+        const entry = appState.dailyStudyHistory.find(h => h.date === dStr);
+        const mins = entry ? entry.minutes : 0;
+        
+        const d = new Date(dStr);
+        const dayName = new Intl.DateTimeFormat('fa-IR', { weekday: 'short' }).format(d);
+        labels.push(dayName);
+        data.push(mins);
+      }
+
+      if (weeklyBarChartInstance) {
+        weeklyBarChartInstance.destroy();
+      }
+
+      const ctx = canvas.getContext('2d');
+      weeklyBarChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'دقایق مطالعه',
+            data: data,
+            backgroundColor: 'rgba(20, 184, 166, 0.75)',
+            borderColor: '#14b8a6',
+            borderWidth: 1.5,
+            borderRadius: 8,
+            hoverBackgroundColor: '#2dd4bf'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              rtl: true,
+              callbacks: {
+                label: function(context) {
+                  return ` ${toPersianDigits(context.raw)} دقیقه مطالعه`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: textColor, font: { family: 'Vazirmatn' } }
+            },
+            y: {
+              grid: { color: gridColor },
+              ticks: {
+                color: textColor,
+                font: { family: 'Vazirmatn' },
+                callback: function(val) { return toPersianDigits(val); }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderSubjectDoughnutChart() {
+      const canvas = document.getElementById('subjectDoughnutChart');
+      if (!canvas) return;
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const textColor = isDark ? '#94a3b8' : '#475569';
+
+      const labels = appState.subjects.map(s => s.name);
+      const data = appState.subjects.map(s => s.totalMinutes || 0);
+      const colors = appState.subjects.map(s => s.color);
+
+      const hasData = data.some(v => v > 0);
+
+      if (subjectDoughnutChartInstance) {
+        subjectDoughnutChartInstance.destroy();
+      }
+
+      const ctx = canvas.getContext('2d');
+      subjectDoughnutChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: hasData ? labels : ['مطالعه ثبت نشده'],
+          datasets: [{
+            data: hasData ? data : [1],
+            backgroundColor: hasData ? colors : ['#94a3b8'],
+            borderColor: isDark ? '#0f172a' : '#ffffff',
+            borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              rtl: true,
+              labels: {
+                color: textColor,
+                font: { family: 'Vazirmatn', size: 11 },
+                padding: 12
+              }
+            },
+            tooltip: {
+              rtl: true,
+              callbacks: {
+                label: function(context) {
+                  if (!hasData) return ' هنور زمانی ثبت نشده';
+                  return ` ${context.label}: ${toPersianDigits(context.raw)} دقیقه`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function generateSmartRecommendation() {
+      const recEl = document.getElementById('smartRecommendationText');
+      if (!recEl) return;
+
+      const streak = appState.user.streak || 0;
+      const totalMinutes = appState.user.totalStudyMinutes || 0;
+      
+      let leastStudiedSubject = null;
+      let minMinutes = Infinity;
+      appState.subjects.forEach(s => {
+        if ((s.totalMinutes || 0) < minMinutes) {
+          minMinutes = s.totalMinutes || 0;
+          leastStudiedSubject = s;
+        }
+      });
+
+      let advice = '';
+      if (streak >= 3) {
+        advice += `🔥 آفرین! زنجیره مطالعه ${toPersianDigits(streak)} روزه شما نشان‌دهنده انضباط عالی شماست. `;
+      } else {
+        advice += 'برای ساختن عادت مطالعه پایدار، روزانه حتی با ۲۵ دقیقه تمرکز پیوسته زنجیره خود را حفظ کنید. ';
+      }
+
+      if (leastStudiedSubject && totalMinutes > 60) {
+        advice += `توزیع زمانی نشان می‌دهد درس <strong>«${leastStudiedSubject.name}»</strong> کمترین سهم را داشته است. پیشنهاد می‌شود برای توازن یادگیری، پومودوروی بعدی را به این مبحث اختصاص دهید.`;
+      } else {
+        advice += 'استفاده مداوم از پومودورو ۲۵/۵ باعث می‌شود خستگی ذهن به تاخیر بیفتد و قدرت یادآوری تا ۳ برابر افزایش یابد.';
+      }
+
+      recEl.innerHTML = advice;
+    }
+
+    /* ==========================================
+       11. DATA BACKUP (EXPORT / IMPORT)
+    ========================================== */
+    function openDataModal() {
+      document.getElementById('dataModal').classList.remove('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeDataModal() {
+      document.getElementById('dataModal').classList.add('hidden');
+    }
+
+    function exportDataJSON() {
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(appState, null, 2));
+      const downloadAnchor = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', `study_manager_backup_${dateStr}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('فایل پشتیبان با موفقیت دانلود شد 💾');
+    }
+
+    function importDataJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (parsed && parsed.tasks && parsed.subjects) {
+            appState = parsed;
+            saveState();
+            closeDataModal();
+            updateGamificationHeader();
+            renderTasks();
+            if (currentTab === 'analytics') renderAnalytics();
+            showToast('اطلاعات با موفقیت از فایل بازیابی شد ✅');
+          } else {
+            showToast('ساختار فایل پشتیبان نامعتبر است ❌');
+          }
+        } catch (err) {
+          showToast('خطا در خواندن فایل JSON ❌');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function confirmResetToSampleData() {
+      if (!confirm('آیا مطمئن هستید که می‌خواهید داده‌های فعلی را با داده‌های نمونه اولیه جایگزین کنید؟')) return;
+      appState = JSON.parse(JSON.stringify(DEFAULT_DATA));
+      saveState();
+      closeDataModal();
+      updateGamificationHeader();
+      renderTasks();
+      if (currentTab === 'analytics') renderAnalytics();
+      showToast('داده‌های نمونه فارسی با موفقیت بارگذاری شد 🚀');
+    }
+
+    /* ==========================================
+       12. THEME & TOAST UTILITIES
+    ========================================== */
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.classList.contains('dark');
+      const sunIcon = document.getElementById('themeSunIcon');
+      const moonIcon = document.getElementById('themeMoonIcon');
+
+      if (isDark) {
+        html.classList.remove('dark');
+        localStorage.setItem('study_theme_mode', 'light');
+        if (sunIcon) sunIcon.classList.remove('hidden');
+        if (moonIcon) moonIcon.classList.add('hidden');
+      } else {
+        html.classList.add('dark');
+        localStorage.setItem('study_theme_mode', 'dark');
+        if (sunIcon) sunIcon.classList.add('hidden');
+        if (moonIcon) moonIcon.classList.remove('hidden');
+      }
+
+      if (currentTab === 'analytics') {
+        renderAnalytics();
+      }
+    }
+
+    function showToast(message) {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = 'p-3.5 px-5 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-teal-500/50 text-slate-900 dark:text-slate-100 text-xs font-bold shadow-2xl flex items-center gap-2 transform translate-y-4 opacity-0 transition-all duration-300 pointer-events-auto backdrop-blur-md';
+      toast.innerHTML = `<i data-lucide="info" class="w-4 h-4 text-teal-500"></i><span>${message}</span>`;
+      container.appendChild(toast);
+
+      if (window.lucide) lucide.createIcons();
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-4', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-4', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function toPersianDigits(n) {
+      if (n === null || n === undefined) return '';
+      const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+      return n.toString().replace(/\d/g, x => persianDigits[x]);
+    }
+
+    function formatPersianDateTime(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      try {
+        return new Intl.DateTimeFormat('fa-IR', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }).format(d);
+      } catch (e) {
+        return d.toLocaleDateString('fa-IR');
+      }
+    }
+
+    /* Keyboard Shortcuts */
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        toggleTimer();
+      }
+      if (e.key === 'Escape') {
+        closeTaskModal();
+        closeSubjectModal();
+        closeExamModal();
+        closeSelectTaskModal();
+        closeSpacedModal();
+        closeDataModal();
+      }
+    });
+
+    /* ==========================================
+       13. APP BOOTSTRAP
+    ========================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      // Check saved theme preference
+      const savedTheme = localStorage.getItem('study_theme_mode');
+      if (savedTheme === 'light') {
+        document.documentElement.classList.remove('dark');
+        const sunIcon = document.getElementById('themeSunIcon');
+        const moonIcon = document.getElementById('themeMoonIcon');
+        if (sunIcon) sunIcon.classList.remove('hidden');
+        if (moonIcon) moonIcon.classList.add('hidden');
+      }
+
+      checkStreak();
+      updateGamificationHeader();
+      populateSubjectDropdowns();
+      renderTasks();
+      updateTimerDisplay();
+
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
